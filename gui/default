@@ -1,0 +1,104 @@
+feedforward	0
+mode	2
+fc_qd	100
+fc_qdd	100
+Pref0	const 0 0 0 0
+Pref1	const 0 0 0 0
+Pref2	const 0 0 0 0
+Pref3	const 0 0 0 0
+Pref4	const 0 0 0 0
+Pref5	const 0 0 0 0
+Qref0	sin 1.5708 0 0.1 0
+Qref1	const 0 0 0 0
+Qref2	const 0 0 0 0
+Qref3	const 0 0 0 0
+Qref4	const 0 0 0 0
+Qref5	const 0 0 0 0
+Qref6	const 0 0 0 0
+Qref7	const 0 0 0 0
+Qref8	const 0 0 0 0
+Kpp0	25000
+Kpd0	12000
+Kpdd0	500
+M0	0
+C0	0
+Fd0	0.15
+vlim0	5
+K0	0
+Zo0	0
+Kpp1	0
+Kpd1	0
+Kpdd1	0
+M1	0
+C1	0
+Fd1	0.15
+vlim1	5
+K1	0
+Zo1	0
+Kpp2	0
+Kpd2	0
+Kpdd2	0
+M2	0
+C2	0
+Fd2	0.15
+vlim2	5
+K2	0
+Zo2	0
+Kpp3	0
+Kpd3	0
+Kpdd3	0
+M3	0
+C3	0
+Fd3	0.15
+vlim3	5
+K3	0
+Zo3	0
+Kpp4	0
+Kpd4	0
+Kpdd4	0
+M4	0
+C4	0
+Fd4	0.15
+vlim4	5
+K4	0
+Zo4	0
+Kpp5	0
+Kpd5	0
+Kpdd5	0
+M5	0
+C5	0
+Fd5	0.15
+vlim5	5
+K5	0
+Zo5	0
+Kpp6	0
+Kpd6	0
+Kpdd6	0
+M6	0
+C6	0
+Fd6	0.15
+vlim6	5
+K6	0
+Zo6	0
+Kpp7	0
+Kpd7	0
+Kpdd7	0
+M7	0
+C7	0
+Fd7	0.15
+vlim7	5
+K7	0
+Zo7	0
+Kpp8	0
+Kpd8	0
+Kpdd8	0
+M8	0
+C8	0
+Fd8	0.15
+vlim8	5
+K8	0
+Zo8	0
+fth	0.1
+mth	0.1
+fc_fext	1
+

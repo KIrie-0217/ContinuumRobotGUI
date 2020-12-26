@@ -1,0 +1,84 @@
+feedforward	1
+mode	0
+fc_qd	100
+fc_qdd	100
+Pref0	const 0 0 0 0
+Pref1	const 0 0 0 0
+Pref2	const 0 0 0 0
+Pref3	const 0 0 0 0
+Pref4	const 0 0 0 0
+Pref5	const 0 0 0 0
+Qref0	const 0.261799 -0.349066 0.2 0
+Qref1	const 0.261799 0.785398 0.2 0
+Qref2	impulse 0.174533 0.785398 0.2 0
+Qref3	const 0.174533 0 1 0
+Qref4	const 0.174533 0 1 0
+Qref5	const 0.174533 0 1 0
+Qref6	const 0.174533 0 1 0
+Kpp0	800000
+Kpd0	10000
+Kpdd0	0
+M0	0
+C0	0
+Fd0	0.15
+vlim0	5
+K0	0
+Zo0	0
+Kpp1	400000
+Kpd1	5000
+Kpdd1	0
+M1	0
+C1	0
+Fd1	0.15
+vlim1	5
+K1	0
+Zo1	0
+Kpp2	300000
+Kpd2	2000
+Kpdd2	0
+M2	0
+C2	0
+Fd2	0.15
+vlim2	5
+K2	0
+Zo2	0
+Kpp3	0
+Kpd3	0
+Kpdd3	0
+M3	0
+C3	0
+Fd3	0.15
+vlim3	5
+K3	0
+Zo3	0
+Kpp4	0
+Kpd4	0
+Kpdd4	0
+M4	0
+C4	0
+Fd4	0.15
+vlim4	5
+K4	0
+Zo4	0
+Kpp5	0
+Kpd5	0
+Kpdd5	0
+M5	0
+C5	0
+Fd5	0.15
+vlim5	5
+K5	0
+Zo5	0
+Kpp6	0
+Kpd6	0
+Kpdd6	0
+M6	0
+C6	0
+Fd6	0.15
+vlim6	5
+K6	0
+Zo6	0
+fth	0.1
+mth	0.1
+fc_fext	100
+
