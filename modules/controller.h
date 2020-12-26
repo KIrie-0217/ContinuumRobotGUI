@@ -48,6 +48,7 @@ class Controller : public Ktl::Dynamics, public Ktl::RTShm{
 
   Ktl::Vector<DOF> u; //�����Ű� [V]
 
+  Ktl::Vector<DOF> magne; //�����Ű� [V]
   double qdabs[DOF];
   int sat[DOF];  
   Ktl::Vector<3> fext;

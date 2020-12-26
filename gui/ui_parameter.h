@@ -43,31 +43,31 @@ public:
     QHBoxLayout *horizontalLayout_2;
     QGroupBox *groupBox_3;
     QGridLayout *gridLayout_5;
-    QDoubleSpinBox *Kc0DoubleSpinBox;
-    QGridLayout *gridLayout_4;
+    QLabel *label_13;
+    QLabel *label_14;
     QLabel *label_11;
-    QDoubleSpinBox *Kc1DoubleSpinBox;
+    QGridLayout *gridLayout_4;
+    QDoubleSpinBox *Bc2DoubleSpinBox;
     QDoubleSpinBox *Kc2DoubleSpinBox;
     QLabel *label_10;
-    QDoubleSpinBox *Bc2DoubleSpinBox;
-    QDoubleSpinBox *Bc0DoubleSpinBox;
-    QLabel *label_14;
     QDoubleSpinBox *Bc1DoubleSpinBox;
     QLabel *label_12;
-    QLabel *label_13;
+    QDoubleSpinBox *Kc0DoubleSpinBox;
+    QDoubleSpinBox *Kc1DoubleSpinBox;
+    QDoubleSpinBox *Bc0DoubleSpinBox;
     QGroupBox *groupBox_4;
     QGridLayout *gridLayout_2;
-    QDoubleSpinBox *_MrDoubleSpinBox;
-    QDoubleSpinBox *mthDoubleSpinBox;
     QDoubleSpinBox *fthDoubleSpinBox;
-    QLabel *label_3;
-    QDoubleSpinBox *_BrDoubleSpinBox;
-    QDoubleSpinBox *_BpDoubleSpinBox;
-    QDoubleSpinBox *_MpDoubleSpinBox;
-    QLabel *label_2;
-    QLabel *label_5;
     QLabel *label_6;
+    QLabel *label_2;
+    QDoubleSpinBox *_MpDoubleSpinBox;
+    QDoubleSpinBox *_BrDoubleSpinBox;
     QLabel *label_4;
+    QDoubleSpinBox *_BpDoubleSpinBox;
+    QDoubleSpinBox *mthDoubleSpinBox;
+    QLabel *label_5;
+    QDoubleSpinBox *_MrDoubleSpinBox;
+    QLabel *label_3;
     QFormLayout *formLayout_5;
     QLabel *samplingPeriodLabel;
     QSpinBox *periodSpinBox;
@@ -159,27 +159,31 @@ public:
         groupBox_3->setObjectName(QString::fromUtf8("groupBox_3"));
         gridLayout_5 = new QGridLayout(groupBox_3);
         gridLayout_5->setObjectName(QString::fromUtf8("gridLayout_5"));
-        Kc0DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
-        Kc0DoubleSpinBox->setObjectName(QString::fromUtf8("Kc0DoubleSpinBox"));
-        Kc0DoubleSpinBox->setSingleStep(0.100000000000000);
+        label_13 = new QLabel(groupBox_3);
+        label_13->setObjectName(QString::fromUtf8("label_13"));
 
-        gridLayout_5->addWidget(Kc0DoubleSpinBox, 1, 1, 1, 1);
+        gridLayout_5->addWidget(label_13, 0, 3, 1, 1);
 
-        gridLayout_4 = new QGridLayout();
-        gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
+        label_14 = new QLabel(groupBox_3);
+        label_14->setObjectName(QString::fromUtf8("label_14"));
 
-        gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
+        gridLayout_5->addWidget(label_14, 2, 0, 1, 1);
 
         label_11 = new QLabel(groupBox_3);
         label_11->setObjectName(QString::fromUtf8("label_11"));
 
         gridLayout_5->addWidget(label_11, 1, 0, 1, 1);
 
-        Kc1DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
-        Kc1DoubleSpinBox->setObjectName(QString::fromUtf8("Kc1DoubleSpinBox"));
-        Kc1DoubleSpinBox->setSingleStep(0.100000000000000);
+        gridLayout_4 = new QGridLayout();
+        gridLayout_4->setObjectName(QString::fromUtf8("gridLayout_4"));
 
-        gridLayout_5->addWidget(Kc1DoubleSpinBox, 1, 2, 1, 1);
+        gridLayout_5->addLayout(gridLayout_4, 0, 0, 1, 1);
+
+        Bc2DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
+        Bc2DoubleSpinBox->setObjectName(QString::fromUtf8("Bc2DoubleSpinBox"));
+        Bc2DoubleSpinBox->setSingleStep(0.010000000000000);
+
+        gridLayout_5->addWidget(Bc2DoubleSpinBox, 2, 3, 1, 1);
 
         Kc2DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
         Kc2DoubleSpinBox->setObjectName(QString::fromUtf8("Kc2DoubleSpinBox"));
@@ -192,23 +196,6 @@ public:
 
         gridLayout_5->addWidget(label_10, 0, 1, 1, 1);
 
-        Bc2DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
-        Bc2DoubleSpinBox->setObjectName(QString::fromUtf8("Bc2DoubleSpinBox"));
-        Bc2DoubleSpinBox->setSingleStep(0.010000000000000);
-
-        gridLayout_5->addWidget(Bc2DoubleSpinBox, 2, 3, 1, 1);
-
-        Bc0DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
-        Bc0DoubleSpinBox->setObjectName(QString::fromUtf8("Bc0DoubleSpinBox"));
-        Bc0DoubleSpinBox->setSingleStep(0.010000000000000);
-
-        gridLayout_5->addWidget(Bc0DoubleSpinBox, 2, 1, 1, 1);
-
-        label_14 = new QLabel(groupBox_3);
-        label_14->setObjectName(QString::fromUtf8("label_14"));
-
-        gridLayout_5->addWidget(label_14, 2, 0, 1, 1);
-
         Bc1DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
         Bc1DoubleSpinBox->setObjectName(QString::fromUtf8("Bc1DoubleSpinBox"));
         Bc1DoubleSpinBox->setSingleStep(0.010000000000000);
@@ -220,10 +207,23 @@ public:
 
         gridLayout_5->addWidget(label_12, 0, 2, 1, 1);
 
-        label_13 = new QLabel(groupBox_3);
-        label_13->setObjectName(QString::fromUtf8("label_13"));
+        Kc0DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
+        Kc0DoubleSpinBox->setObjectName(QString::fromUtf8("Kc0DoubleSpinBox"));
+        Kc0DoubleSpinBox->setSingleStep(0.100000000000000);
 
-        gridLayout_5->addWidget(label_13, 0, 3, 1, 1);
+        gridLayout_5->addWidget(Kc0DoubleSpinBox, 1, 1, 1, 1);
+
+        Kc1DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
+        Kc1DoubleSpinBox->setObjectName(QString::fromUtf8("Kc1DoubleSpinBox"));
+        Kc1DoubleSpinBox->setSingleStep(0.100000000000000);
+
+        gridLayout_5->addWidget(Kc1DoubleSpinBox, 1, 2, 1, 1);
+
+        Bc0DoubleSpinBox = new QDoubleSpinBox(groupBox_3);
+        Bc0DoubleSpinBox->setObjectName(QString::fromUtf8("Bc0DoubleSpinBox"));
+        Bc0DoubleSpinBox->setSingleStep(0.010000000000000);
+
+        gridLayout_5->addWidget(Bc0DoubleSpinBox, 2, 1, 1, 1);
 
 
         horizontalLayout_2->addWidget(groupBox_3);
@@ -232,21 +232,6 @@ public:
         groupBox_4->setObjectName(QString::fromUtf8("groupBox_4"));
         gridLayout_2 = new QGridLayout(groupBox_4);
         gridLayout_2->setObjectName(QString::fromUtf8("gridLayout_2"));
-        _MrDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
-        _MrDoubleSpinBox->setObjectName(QString::fromUtf8("_MrDoubleSpinBox"));
-        _MrDoubleSpinBox->setValue(1.000000000000000);
-
-        gridLayout_2->addWidget(_MrDoubleSpinBox, 2, 2, 1, 1);
-
-        mthDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
-        mthDoubleSpinBox->setObjectName(QString::fromUtf8("mthDoubleSpinBox"));
-        mthDoubleSpinBox->setDecimals(1);
-        mthDoubleSpinBox->setMinimum(0.100000000000000);
-        mthDoubleSpinBox->setMaximum(1000.000000000000000);
-        mthDoubleSpinBox->setSingleStep(0.100000000000000);
-
-        gridLayout_2->addWidget(mthDoubleSpinBox, 4, 2, 1, 1);
-
         fthDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
         fthDoubleSpinBox->setObjectName(QString::fromUtf8("fthDoubleSpinBox"));
         fthDoubleSpinBox->setMinimum(0.010000000000000);
@@ -255,25 +240,15 @@ public:
 
         gridLayout_2->addWidget(fthDoubleSpinBox, 4, 1, 1, 1);
 
-        label_3 = new QLabel(groupBox_4);
-        label_3->setObjectName(QString::fromUtf8("label_3"));
+        label_6 = new QLabel(groupBox_4);
+        label_6->setObjectName(QString::fromUtf8("label_6"));
 
-        gridLayout_2->addWidget(label_3, 1, 1, 1, 1);
+        gridLayout_2->addWidget(label_6, 4, 0, 1, 1);
 
-        _BrDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
-        _BrDoubleSpinBox->setObjectName(QString::fromUtf8("_BrDoubleSpinBox"));
-        _BrDoubleSpinBox->setValue(1.000000000000000);
+        label_2 = new QLabel(groupBox_4);
+        label_2->setObjectName(QString::fromUtf8("label_2"));
 
-        gridLayout_2->addWidget(_BrDoubleSpinBox, 3, 2, 1, 1);
-
-        _BpDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
-        _BpDoubleSpinBox->setObjectName(QString::fromUtf8("_BpDoubleSpinBox"));
-        _BpDoubleSpinBox->setDecimals(0);
-        _BpDoubleSpinBox->setMinimum(1.000000000000000);
-        _BpDoubleSpinBox->setMaximum(10000.000000000000000);
-        _BpDoubleSpinBox->setValue(100.000000000000000);
-
-        gridLayout_2->addWidget(_BpDoubleSpinBox, 3, 1, 1, 1);
+        gridLayout_2->addWidget(label_2, 2, 0, 1, 1);
 
         _MpDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
         _MpDoubleSpinBox->setObjectName(QString::fromUtf8("_MpDoubleSpinBox"));
@@ -284,25 +259,50 @@ public:
 
         gridLayout_2->addWidget(_MpDoubleSpinBox, 2, 1, 1, 1);
 
-        label_2 = new QLabel(groupBox_4);
-        label_2->setObjectName(QString::fromUtf8("label_2"));
+        _BrDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
+        _BrDoubleSpinBox->setObjectName(QString::fromUtf8("_BrDoubleSpinBox"));
+        _BrDoubleSpinBox->setValue(1.000000000000000);
 
-        gridLayout_2->addWidget(label_2, 2, 0, 1, 1);
+        gridLayout_2->addWidget(_BrDoubleSpinBox, 3, 2, 1, 1);
+
+        label_4 = new QLabel(groupBox_4);
+        label_4->setObjectName(QString::fromUtf8("label_4"));
+
+        gridLayout_2->addWidget(label_4, 1, 2, 1, 1);
+
+        _BpDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
+        _BpDoubleSpinBox->setObjectName(QString::fromUtf8("_BpDoubleSpinBox"));
+        _BpDoubleSpinBox->setDecimals(0);
+        _BpDoubleSpinBox->setMinimum(1.000000000000000);
+        _BpDoubleSpinBox->setMaximum(10000.000000000000000);
+        _BpDoubleSpinBox->setValue(100.000000000000000);
+
+        gridLayout_2->addWidget(_BpDoubleSpinBox, 3, 1, 1, 1);
+
+        mthDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
+        mthDoubleSpinBox->setObjectName(QString::fromUtf8("mthDoubleSpinBox"));
+        mthDoubleSpinBox->setDecimals(1);
+        mthDoubleSpinBox->setMinimum(0.100000000000000);
+        mthDoubleSpinBox->setMaximum(1000.000000000000000);
+        mthDoubleSpinBox->setSingleStep(0.100000000000000);
+
+        gridLayout_2->addWidget(mthDoubleSpinBox, 4, 2, 1, 1);
 
         label_5 = new QLabel(groupBox_4);
         label_5->setObjectName(QString::fromUtf8("label_5"));
 
         gridLayout_2->addWidget(label_5, 3, 0, 1, 1);
 
-        label_6 = new QLabel(groupBox_4);
-        label_6->setObjectName(QString::fromUtf8("label_6"));
+        _MrDoubleSpinBox = new QDoubleSpinBox(groupBox_4);
+        _MrDoubleSpinBox->setObjectName(QString::fromUtf8("_MrDoubleSpinBox"));
+        _MrDoubleSpinBox->setValue(1.000000000000000);
 
-        gridLayout_2->addWidget(label_6, 4, 0, 1, 1);
+        gridLayout_2->addWidget(_MrDoubleSpinBox, 2, 2, 1, 1);
 
-        label_4 = new QLabel(groupBox_4);
-        label_4->setObjectName(QString::fromUtf8("label_4"));
+        label_3 = new QLabel(groupBox_4);
+        label_3->setObjectName(QString::fromUtf8("label_3"));
 
-        gridLayout_2->addWidget(label_4, 1, 2, 1, 1);
+        gridLayout_2->addWidget(label_3, 1, 1, 1, 1);
 
 
         horizontalLayout_2->addWidget(groupBox_4);
@@ -369,23 +369,23 @@ public:
         uLabel->setText(QApplication::translate("Dialog", "u", nullptr));
         label->setText(QApplication::translate("Dialog", "fext", nullptr));
         groupBox_3->setTitle(QApplication::translate("Dialog", "Impedance", nullptr));
+        label_13->setText(QApplication::translate("Dialog", "z", nullptr));
+        label_14->setText(QApplication::translate("Dialog", "Bc", nullptr));
         label_11->setText(QApplication::translate("Dialog", "Kc", nullptr));
         label_10->setText(QApplication::translate("Dialog", "x", nullptr));
-        label_14->setText(QApplication::translate("Dialog", "Bc", nullptr));
         label_12->setText(QApplication::translate("Dialog", "y", nullptr));
-        label_13->setText(QApplication::translate("Dialog", "z", nullptr));
         groupBox_4->setTitle(QApplication::translate("Dialog", "GroupBox", nullptr));
-        _MrDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[1/gm^2]", nullptr));
-        mthDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[mNm]", nullptr));
         fthDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[N]", nullptr));
-        label_3->setText(QApplication::translate("Dialog", "Translation", nullptr));
-        _BrDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[rad/smNm]", nullptr));
-        _BpDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[mm/sN]", nullptr));
-        _MpDoubleSpinBox->setSpecialValueText(QString());
-        label_2->setText(QApplication::translate("Dialog", "1/M", nullptr));
-        label_5->setText(QApplication::translate("Dialog", "1/B", nullptr));
         label_6->setText(QApplication::translate("Dialog", "fth", nullptr));
+        label_2->setText(QApplication::translate("Dialog", "1/M", nullptr));
+        _MpDoubleSpinBox->setSpecialValueText(QString());
+        _BrDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[rad/smNm]", nullptr));
         label_4->setText(QApplication::translate("Dialog", "Rotation", nullptr));
+        _BpDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[mm/sN]", nullptr));
+        mthDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[mNm]", nullptr));
+        label_5->setText(QApplication::translate("Dialog", "1/B", nullptr));
+        _MrDoubleSpinBox->setSuffix(QApplication::translate("Dialog", "[1/gm^2]", nullptr));
+        label_3->setText(QApplication::translate("Dialog", "Translation", nullptr));
         samplingPeriodLabel->setText(QApplication::translate("Dialog", "sampling period", nullptr));
         periodSpinBox->setSuffix(QApplication::translate("Dialog", " [ms]", nullptr));
         periodSpinBox->setPrefix(QString());

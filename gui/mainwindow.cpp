@@ -150,7 +150,7 @@ MainWindow::MainWindow(int id2){
   //layout->addWidget(jointOperation);
 
   //--------- Setting Monitor --------------------------------------
-  monitor->setAxes("yaw","pitch1","pitch2","alpha","beta","gamma","grip", NULL);
+  monitor->setAxes("1-1","1-2","1-3","2-1","2-2","2-3","3-1","3-2","3-3",NULL);
 #define DATA(name) (&ctrl->name)
 
   monitor->addType( "q");
@@ -170,30 +170,44 @@ MainWindow::MainWindow(int id2){
   for(int j=0;j<DOF;j++)
     monitor->registerData(-1000.0,1000.0, 0, DEG, DATA(joint[j].qddref),
 			  DATA(joint[j].qdd) );
+
+
+  monitor->addType( "magne");
+  for(int j=0;j<DOF;j++)
+    monitor->registerData(0,10.0, 0, DEG, DATA(magne[j]) );
+
+    
  
+  /*
   monitor->addType( "tau_ref");
   for(int j=0;j<DOF;j++)
     monitor->registerData( -200.0, 200.0, 0, 1.0,
 			   DATA(joint[j].tau_ref), DATA(joint[j].tau_ff) );
   
+  */
+
+ /*
   monitor->addType( "u");
   for(int j=0;j<DOF;j++)
     monitor->registerData( -10.0, 10.0, 0, 1.0, DATA(u[j]) );
+  */
 
-
+ /*
   monitor->addType( "P IK");
   monitor->registerData( -100.0, 100.0, 0, 1.0,
 			 DATA(robotIK.P()[0]),
 			 DATA(robotIK.P()[1]),
 			 DATA(robotIK.P()[2]));
-
+  */
   
+  /*
   monitor->addType( "Pd");
   monitor->registerData( -100.0, 100.0, 0, 1.0, DATA(Pd[0]),DATA(Pd[1]),DATA(Pd[2]) );
 
   monitor->addType( "w");
   monitor->registerData( -100.0, 100.0, 0, 1.0, DATA(w[0]),DATA(w[1]),DATA(w[2]) );
-  
+  */
+
   monitor->addType( "torque 1-3");
   monitor->registerData( -10.0, 10.0, 0, 1.0,
 			 DATA(torque[0]),
@@ -204,7 +218,13 @@ MainWindow::MainWindow(int id2){
 			 DATA(torque[3]),
 			 DATA(torque[4]),
 			 DATA(torque[5]) );
-			 
+  monitor->addType( "torque 7-9");
+  monitor->registerData( -10.0, 10.0, 0, 1.0,
+			 DATA(torque[6]),
+			 DATA(torque[7]),
+			 DATA(torque[8]) );
+
+
   
   //---------------------------------------------------------------
   //monitor->addType( "gr");

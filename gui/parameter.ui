@@ -136,15 +136,19 @@
         <string>Impedance</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_5">
-        <item row="1" column="1">
-         <widget class="QDoubleSpinBox" name="Kc0DoubleSpinBox">
-          <property name="singleStep">
-           <double>0.100000000000000</double>
+        <item row="0" column="3">
+         <widget class="QLabel" name="label_13">
+          <property name="text">
+           <string>z</string>
           </property>
          </widget>
         </item>
-        <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayout_4"/>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>Bc</string>
+          </property>
+         </widget>
         </item>
         <item row="1" column="0">
          <widget class="QLabel" name="label_11">
@@ -153,10 +157,13 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="QDoubleSpinBox" name="Kc1DoubleSpinBox">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout_4"/>
+        </item>
+        <item row="2" column="3">
+         <widget class="QDoubleSpinBox" name="Bc2DoubleSpinBox">
           <property name="singleStep">
-           <double>0.100000000000000</double>
+           <double>0.010000000000000</double>
           </property>
          </widget>
         </item>
@@ -174,27 +181,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="3">
-         <widget class="QDoubleSpinBox" name="Bc2DoubleSpinBox">
-          <property name="singleStep">
-           <double>0.010000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="1">
-         <widget class="QDoubleSpinBox" name="Bc0DoubleSpinBox">
-          <property name="singleStep">
-           <double>0.010000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_14">
-          <property name="text">
-           <string>Bc</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="2">
          <widget class="QDoubleSpinBox" name="Bc1DoubleSpinBox">
           <property name="singleStep">
@@ -209,10 +195,24 @@
           </property>
          </widget>
         </item>
-        <item row="0" column="3">
-         <widget class="QLabel" name="label_13">
-          <property name="text">
-           <string>z</string>
+        <item row="1" column="1">
+         <widget class="QDoubleSpinBox" name="Kc0DoubleSpinBox">
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QDoubleSpinBox" name="Kc1DoubleSpinBox">
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDoubleSpinBox" name="Bc0DoubleSpinBox">
+          <property name="singleStep">
+           <double>0.010000000000000</double>
           </property>
          </widget>
         </item>
@@ -225,35 +225,6 @@
         <string>GroupBox</string>
        </property>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="2" column="2">
-         <widget class="QDoubleSpinBox" name="_MrDoubleSpinBox">
-          <property name="suffix">
-           <string>[1/gm^2]</string>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="2">
-         <widget class="QDoubleSpinBox" name="mthDoubleSpinBox">
-          <property name="suffix">
-           <string>[mNm]</string>
-          </property>
-          <property name="decimals">
-           <number>1</number>
-          </property>
-          <property name="minimum">
-           <double>0.100000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>1000.000000000000000</double>
-          </property>
-          <property name="singleStep">
-           <double>0.100000000000000</double>
-          </property>
-         </widget>
-        </item>
         <item row="4" column="1">
          <widget class="QDoubleSpinBox" name="fthDoubleSpinBox">
           <property name="suffix">
@@ -270,39 +241,17 @@
           </property>
          </widget>
         </item>
-        <item row="1" column="1">
-         <widget class="QLabel" name="label_3">
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_6">
           <property name="text">
-           <string>Translation</string>
+           <string>fth</string>
           </property>
          </widget>
         </item>
-        <item row="3" column="2">
-         <widget class="QDoubleSpinBox" name="_BrDoubleSpinBox">
-          <property name="suffix">
-           <string>[rad/smNm]</string>
-          </property>
-          <property name="value">
-           <double>1.000000000000000</double>
-          </property>
-         </widget>
-        </item>
-        <item row="3" column="1">
-         <widget class="QDoubleSpinBox" name="_BpDoubleSpinBox">
-          <property name="suffix">
-           <string>[mm/sN]</string>
-          </property>
-          <property name="decimals">
-           <number>0</number>
-          </property>
-          <property name="minimum">
-           <double>1.000000000000000</double>
-          </property>
-          <property name="maximum">
-           <double>10000.000000000000000</double>
-          </property>
-          <property name="value">
-           <double>100.000000000000000</double>
+        <item row="2" column="0">
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>1/M</string>
           </property>
          </widget>
         </item>
@@ -325,10 +274,58 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="0">
-         <widget class="QLabel" name="label_2">
+        <item row="3" column="2">
+         <widget class="QDoubleSpinBox" name="_BrDoubleSpinBox">
+          <property name="suffix">
+           <string>[rad/smNm]</string>
+          </property>
+          <property name="value">
+           <double>1.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="2">
+         <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>1/M</string>
+           <string>Rotation</string>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="_BpDoubleSpinBox">
+          <property name="suffix">
+           <string>[mm/sN]</string>
+          </property>
+          <property name="decimals">
+           <number>0</number>
+          </property>
+          <property name="minimum">
+           <double>1.000000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>10000.000000000000000</double>
+          </property>
+          <property name="value">
+           <double>100.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="2">
+         <widget class="QDoubleSpinBox" name="mthDoubleSpinBox">
+          <property name="suffix">
+           <string>[mNm]</string>
+          </property>
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="minimum">
+           <double>0.100000000000000</double>
+          </property>
+          <property name="maximum">
+           <double>1000.000000000000000</double>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
           </property>
          </widget>
         </item>
@@ -339,17 +336,20 @@
           </property>
          </widget>
         </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_6">
-          <property name="text">
-           <string>fth</string>
+        <item row="2" column="2">
+         <widget class="QDoubleSpinBox" name="_MrDoubleSpinBox">
+          <property name="suffix">
+           <string>[1/gm^2]</string>
+          </property>
+          <property name="value">
+           <double>1.000000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="1" column="2">
-         <widget class="QLabel" name="label_4">
+        <item row="1" column="1">
+         <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Rotation</string>
+           <string>Translation</string>
           </property>
          </widget>
         </item>

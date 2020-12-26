@@ -110,6 +110,7 @@ void* Controller::thread(void *p_arg){
   
   flag_emergency = false;
 
+
   //----------------------------------------
   
   state = MSS::STATE_SERVO_OFF;
@@ -246,6 +247,12 @@ void* Controller::thread(void *p_arg){
       */
     joint[0].update( RPP[0]*input2[0].count[0] / Rt[0] + Q0[0] );
 
+
+  for(int j=0; j<DOF; j++){
+      input2[0].v[j] = magne[j];
+    }
+
+
     for(int i=0;i<2;i++){
       std::cout <<joint[0].q<<std::endl;
     }
@@ -367,6 +374,8 @@ void* Controller::thread(void *p_arg){
       output2[0].dout[j] = flag_servo_on;
       output2[0].u[j] = u[j];
     }
+
+
 
     for(int i=0;i<2;i++)
       ts01[i].write_data(&output2[i]);
