@@ -33,6 +33,8 @@ MainWindow::MainWindow(int id2){
   dataLogger = new KQt::DataLogger;
   referenceDialog = new KQt::ReferenceDialog(this);
   modeSelector = new KQt::ModeSelector;
+  tasksSelector = new KQt::ModeSelector;
+
   
   statusLabel = new QLabel("unloaded");
   statusBar()->addPermanentWidget(statusLabel);
@@ -146,6 +148,19 @@ MainWindow::MainWindow(int id2){
   tab->addTab(tab2,"operation");
   QHBoxLayout* layout = new QHBoxLayout;
   tab2->setLayout(layout);
+  layout -> addWidget(tasksSelector);
+
+  /*
+  QButtonGroup* buttonGroup_posture = new QButtonGroup;
+  buttonGroup_posture->setExclusive(false);
+  for(int i=0;i<TASKS_LAST  ;i++){
+    QPushButton* button = new QPushButton(Tasks_text(i));
+    button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    buttonGroup_posture->addButton(button,i);
+    layout->addWidget(button,1);
+  }
+  */
+
   //layout->addWidget(cartesianOperation);
   //layout->addWidget(jointOperation);
 
@@ -214,7 +229,6 @@ MainWindow::MainWindow(int id2){
     monitor->registerData( -1000.0, 1000.0, 0, 1.0, DATA(torque[j]) );
 
 
-  
   //---------------------------------------------------------------
   //monitor->addType( "gr");
   //monitor->registerData( 0.0, 1.0, -1, 1.0, DATA(grip) );
@@ -263,6 +277,14 @@ MainWindow::MainWindow(int id2){
   modeSelector->addMode("IK",MODE_TEST_IK_MOTION);
   modeSelector->addMode("FK",MODE_TEST_FK_MOTION);
   modeSelector->setMode(2);
+  std::cout <<"aa" <<std::endl;
+  tasksSelector->addMode("Line",LINE);     
+  tasksSelector->addMode("C",C_CURVATURE);     
+  tasksSelector->addMode("S",S_CURVATURE);
+  tasksSelector->addMode("Gas",GASTURBINE);
+  tasksSelector->addMode("Init",INITIALIZE);
+  tasksSelector->setMode(0);
+
 
   //const QString IMG_PATH("/usr/local/lib/kqt/img/");
   const QString IMG_PATH("./img/");
@@ -305,7 +327,8 @@ MainWindow::MainWindow(int id2){
     pm.setWidgetMagnification("Pref", j , DEG); // rad -> deg
 
   pm.excludeWidgetAssociation("mode");
-  
+  pm.excludeWidgetAssociation("tasks");
+
   //登録されている変数アドレスをその名前に対応するwidgetに関連付ける
   pm.associateWidgets(this);
 
@@ -362,6 +385,11 @@ void MainWindow::getParam(){ //GUI値を読んで変数に格納する
   pm.getValuesFromWidgets();
 }
 
+void MainWindow::getTasks(){ //GUI値を読んで変数に格納する
+  pm.setValue("tasks", tasksSelector->currentMode() );
+  pm.getValuesFromWidgets();
+}
+
 bool MainWindow::start(){
 
   if( ctrl->state != MSS::STATE_STANDBY ){
@@ -370,6 +398,7 @@ bool MainWindow::start(){
   }
 
   getParam();
+  getTasks();
   
   statusBar()->showMessage(tr("running control now"), 2000);
 

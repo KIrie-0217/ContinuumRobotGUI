@@ -288,99 +288,114 @@ while(1) {
   
   //=== main process ==========================================
   switch(state){
-  case MSS::STATE_SERVO_OFF:
-  case MSS::STATE_STANDBY:
+    case MSS::STATE_SERVO_OFF:
+    case MSS::STATE_STANDBY:
 
-    for(int j=0;j<DOF;j++){
-      joint[j].qref = joint[j].q;
-      joint[j].Qref.update();
-      joint[j].tau_ref = 0.0;
-    }
-
-  break;
-
-  case MSS::STATE_PREPARING: //MSS::COMMAND_STARTにより遷移
-
-    if( ptp.is_progressing(t) ){
-
-    for(int j=0;j<DOF;j++){
-      //joint[j].qref = robotIK.q(j);
-      joint[j].Qref.update();
-      joint[j].feedback_control();
-      joint[j].tau_ref = joint[j].tau_fb;
-    }
-    }
-    else{
-      printf("getting READY\n");
-      state = MSS::STATE_READY; //(locked)
-    }
-  break;
-    
-  case MSS::STATE_READY: //(locked)
-    for(int j=0;j<DOF;j++){
-      //joint[j].qref = robotIK.q(j);
-      joint[j].Qref.update();
-      joint[j].feedback_control();
-      joint[j].tau_ref = joint[j].tau_fb;
-    }
-  break;
-
-  case MSS::STATE_TASK_RUNNING:
-
-    for(int j=0;j<DOF;j++){
-      joint[j].qref = joint[j].q + magneflag[j] * 10;
-      joint[j].Qref.update();
-      joint[j].Qdref.update();
-      joint[j].feedback_control();
-      joint[j].tau_ref = joint[j].tau_fb;
-    }
-    /*
-    mref.zero();
-    
-    if( flag_pose_lock ){ //
-      //wref.zero();
-      for(int j=3;j<DOF;j++){ //
-        joint[j].qdref = 0.2 *( 0.0- joint[j].qd );
-      }
-    }
-
-    for(int j=0;j<DOF;j++){
-      joint[j].qref = joint[j].q;
-      joint[j].tau_ref = 0.0;
-    }
-
-    
-    for(int j=0;j<DOF;j++){
-      joint[j].feedforward_control(0,1,1);
-    }
-
-    */
-    
-  break;
-
-  case MSS::STATE_TEST_RUNNING:
-    if( mode == MODE_TEST_FK_MOTION ){
       for(int j=0;j<DOF;j++){
-        joint[j].qref = joint[j].ptp.track( Qwave[j].generate(t), t );
+        joint[j].qref = joint[j].q;
+        joint[j].Qref.update();
+        joint[j].tau_ref = 0.0;
       }
-    }
-    else if( mode == MODE_TEST_IK_MOTION ){
 
-      Ktl::Vector<6> qref;// = robotIK.q();
-      for(int j=3;j<DOF;j++)
-        joint[j].qref = qref[j];
-      for(int j=3;j<DOF;j++)
-        joint[j].qref = Pwave[j].generate(t);      
-    }
-    
-    for(int j=0;j<DOF;j++){
-      joint[j].Qref.update();
-      joint[j].Qdref.update();
-      joint[j].feedback_control();
-      joint[j].tau_ref = joint[j].tau_fb;
-    }
+    break;
 
-  break; //END of TEST_RUNNING
+    case MSS::STATE_PREPARING: //MSS::COMMAND_STARTにより遷移
+
+      if( ptp.is_progressing(t) ){
+
+      for(int j=0;j<DOF;j++){
+        //joint[j].qref = robotIK.q(j);
+        joint[j].Qref.update();
+        joint[j].feedback_control();
+        joint[j].tau_ref = joint[j].tau_fb;
+      }
+      }
+      else{
+        printf("getting READY\n");
+        state = MSS::STATE_READY; //(locked)
+      }
+    break;
+      
+    case MSS::STATE_READY: //(locked)
+      for(int j=0;j<DOF;j++){
+        //joint[j].qref = robotIK.q(j);
+        joint[j].Qref.update();
+        joint[j].feedback_control();
+        joint[j].tau_ref = joint[j].tau_fb;
+      }
+    break;
+
+    case MSS::STATE_TASK_RUNNING:
+      switch(tasks){
+        case LINE:
+        break;
+        
+        case C_CURVATURE:
+          for(int j=0;j<DOF;j++){
+            joint[j].qref = joint[j].q + magneflag[j] * 10;
+            joint[j].Qref.update();
+            joint[j].Qdref.update();
+            joint[j].feedback_control();
+            joint[j].tau_ref = joint[j].tau_fb;
+          }
+        break;
+
+        case S_CURVATURE:
+        break;
+
+        case GASTURBINE:
+        break;
+
+        case INITIALIZE:
+        break;
+
+      /*
+      mref.zero();
+      
+      if( flag_pose_lock ){ //
+        //wref.zero();
+        for(int j=3;j<DOF;j++){ //
+          joint[j].qdref = 0.2 *( 0.0- joint[j].qd );
+        }
+      }
+
+      for(int j=0;j<DOF;j++){
+        joint[j].qref = joint[j].q;
+        joint[j].tau_ref = 0.0;
+      }
+
+      
+      for(int j=0;j<DOF;j++){
+        joint[j].feedforward_control(0,1,1);
+      }
+
+      */
+      }
+    break;
+
+    case MSS::STATE_TEST_RUNNING:
+      if( mode == MODE_TEST_FK_MOTION ){
+        for(int j=0;j<DOF;j++){
+          joint[j].qref = joint[j].ptp.track( Qwave[j].generate(t), t );
+        }
+      }
+      else if( mode == MODE_TEST_IK_MOTION ){
+
+        Ktl::Vector<6> qref;// = robotIK.q();
+        for(int j=3;j<DOF;j++)
+          joint[j].qref = qref[j];
+        for(int j=3;j<DOF;j++)
+          joint[j].qref = Pwave[j].generate(t);      
+      }
+      
+      for(int j=0;j<DOF;j++){
+        joint[j].Qref.update();
+        joint[j].Qdref.update();
+        joint[j].feedback_control();
+        joint[j].tau_ref = joint[j].tau_fb;
+      }
+
+    break; //END of TEST_RUNNING
 
   } //switch(state)
 
@@ -485,7 +500,6 @@ return 0;
  *     init_module
  *******************************************************************/
 int main(int ac,char* av[]){
-
   std::string name = "sarm_module"+std::to_string(0);
   //Ktl::ManagedProcess mp(name);
   Ktl::FIFOHandler handler(name);

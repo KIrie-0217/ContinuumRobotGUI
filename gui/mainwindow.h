@@ -28,6 +28,7 @@ Q_OBJECT
   KQt::ParameterManager pm;
   KQt::StartStopManager* startstop;  
   KQt::ModeSelector* modeSelector;
+  KQt::ModeSelector* tasksSelector;
   KQt::DataLogger* dataLogger;
   KQt::Plotter* plotter;
   KQt::SignalMonitor* monitor;
@@ -46,7 +47,8 @@ Q_OBJECT
   Ktl::FileReader fr;
   
   void getParam();
-  
+  void getTasks();
+
   //-- override from MainWindow ------------
   void loadFile(const QString &fileName);
   bool saveFile(const QString &fileName);

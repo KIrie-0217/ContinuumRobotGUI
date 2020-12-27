@@ -14,12 +14,25 @@ enum ControlMode{
   MODE_TEST_FK_MOTION,
 };
 
+enum Tasks{
+  LINE,
+  C_CURVATURE,
+  S_CURVATURE,
+  GASTURBINE,
+  INITIALIZE,
+  TASKS_LAST,
+};
+
+
+
+
 class Controller : public Ktl::Dynamics, public Ktl::RTShm{
  public:
   const int id;
   int state;
   bool flag_emergency;
   int mode;
+  int tasks;
   
   double t; // for only start_PTP
 
