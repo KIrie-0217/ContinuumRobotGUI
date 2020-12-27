@@ -33,7 +33,8 @@ MainWindow::MainWindow(int id2){
   dataLogger = new KQt::DataLogger;
   referenceDialog = new KQt::ReferenceDialog(this);
   modeSelector = new KQt::ModeSelector;
-  tasksSelector = new KQt::ModeSelector;
+  
+  //tasksSelector = new KQt::ModeSelector;
 
   
   statusLabel = new QLabel("unloaded");
@@ -148,18 +149,26 @@ MainWindow::MainWindow(int id2){
   tab->addTab(tab2,"operation");
   QHBoxLayout* layout = new QHBoxLayout;
   tab2->setLayout(layout);
-  layout -> addWidget(tasksSelector);
+  //layout -> addWidget(tasksSelector);
 
-  /*
+  QGroupBox* tasksBox = new QGroupBox("Tasks");
+  QVBoxLayout* tasksLayout = new QVBoxLayout;
+  tasksBox->setLayout(tasksLayout);
   QButtonGroup* buttonGroup_posture = new QButtonGroup;
-  buttonGroup_posture->setExclusive(false);
-  for(int i=0;i<TASKS_LAST  ;i++){
-    QPushButton* button = new QPushButton(Tasks_text(i));
-    button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    buttonGroup_posture->addButton(button,i);
-    layout->addWidget(button,1);
+  buttonGroup->setExclusive(false);
+
+  for(int i=0;i<TASKS_LAST -1 ;i++){
+    QPushButton* button_posture = new QPushButton(tasks_text(i));
+    button_posture->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    buttonGroup_posture->addButton(button_posture,i);
+    tasksLayout->addWidget(button_posture,1);
   }
-  */
+  connect(buttonGroup_posture, SIGNAL(buttonClicked(int)),
+	  this, SLOT(sendTasks(int)) );
+  
+  
+  layout->addWidget(tasksBox);	
+  
 
   //layout->addWidget(cartesianOperation);
   //layout->addWidget(jointOperation);
@@ -277,14 +286,15 @@ MainWindow::MainWindow(int id2){
   modeSelector->addMode("IK",MODE_TEST_IK_MOTION);
   modeSelector->addMode("FK",MODE_TEST_FK_MOTION);
   modeSelector->setMode(2);
-  std::cout <<"aa" <<std::endl;
+
+  /*
   tasksSelector->addMode("Line",LINE);     
   tasksSelector->addMode("C",C_CURVATURE);     
   tasksSelector->addMode("S",S_CURVATURE);
   tasksSelector->addMode("Gas",GASTURBINE);
   tasksSelector->addMode("Init",INITIALIZE);
   tasksSelector->setMode(0);
-
+  */
 
   //const QString IMG_PATH("/usr/local/lib/kqt/img/");
   const QString IMG_PATH("./img/");
@@ -327,7 +337,8 @@ MainWindow::MainWindow(int id2){
     pm.setWidgetMagnification("Pref", j , DEG); // rad -> deg
 
   pm.excludeWidgetAssociation("mode");
-  pm.excludeWidgetAssociation("tasks");
+  
+  //pm.excludeWidgetAssociation("tasks");
 
   //登録されている変数アドレスをその名前に対応するwidgetに関連付ける
   pm.associateWidgets(this);
@@ -362,6 +373,19 @@ void MainWindow::sendCommand(int cmd){
   ctrl_module.send_command(cmd);
 }
 
+void MainWindow::sendTasks(int tasks){
+  if( !ctrl_module.exists() ){
+    printf("CtrlKit:: control module is not loaded\n ");
+    return;
+  }
+
+  statusBar()->showMessage(tr(tasks_text(tasks)), 2000);
+  ctrl_module.send_command(tasks);
+
+}
+
+
+
 void MainWindow::execParameterDialog(){
   pm.setValuesToWidgets(parameterDialog);
   int ret = parameterDialog->exec();
@@ -385,10 +409,11 @@ void MainWindow::getParam(){ //GUI値を読んで変数に格納する
   pm.getValuesFromWidgets();
 }
 
+/*
 void MainWindow::getTasks(){ //GUI値を読んで変数に格納する
   pm.setValue("tasks", tasksSelector->currentMode() );
   pm.getValuesFromWidgets();
-}
+}*/
 
 bool MainWindow::start(){
 
@@ -398,7 +423,8 @@ bool MainWindow::start(){
   }
 
   getParam();
-  getTasks();
+  
+  //getTasks();
   
   statusBar()->showMessage(tr("running control now"), 2000);
 
@@ -422,7 +448,7 @@ void MainWindow::stop(){
 
   sendCommand(MSS::COMMAND_STOP);
 
-  statusBar()->showMessage(tr(""), 2000);
+  statusBar()->showMessage(tr("stoop"), 2000);
 }
 
 

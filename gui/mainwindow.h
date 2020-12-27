@@ -61,6 +61,7 @@ Q_OBJECT
   void execReferenceDialog();
   void applyReferences();
   void sendCommand(int id);
+  void sendTasks(int id);
 
   //void operateJointMotion(int id,int trigger,int direction);
   void operateCartesianMotion(int id,int trigger,int direction);

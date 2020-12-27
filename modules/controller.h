@@ -24,6 +24,22 @@ enum Tasks{
 };
 
 
+static const char* tasks_text(int com){
+  static const char* tasks_text[]={
+  "LINE",
+  "C",
+  "S",
+  "GASTURBINE",
+  "INITIALIZE",
+  };
+  
+  if( com < 0 || com >= TASKS_LAST ){
+    return "INVALID_COMMAND";
+  }
+  return tasks_text[com];
+}
+
+
 
 
 class Controller : public Ktl::Dynamics, public Ktl::RTShm{
