@@ -146,7 +146,7 @@ MainWindow::MainWindow(int id2){
   tab->addTab(tab2,"operation");
   QHBoxLayout* layout = new QHBoxLayout;
   tab2->setLayout(layout);
-  layout->addWidget(cartesianOperation);
+  //layout->addWidget(cartesianOperation);
   //layout->addWidget(jointOperation);
 
   //--------- Setting Monitor --------------------------------------
@@ -174,7 +174,7 @@ MainWindow::MainWindow(int id2){
 
   monitor->addType( "magne");
   for(int j=0;j<DOF;j++)
-    monitor->registerData(0,10.0, 0, DEG, DATA(magne[j]) );
+    monitor->registerData(0,10.0, 0, 1, DATA(magne[j]) );
 
     
  
@@ -208,21 +208,10 @@ MainWindow::MainWindow(int id2){
   monitor->registerData( -100.0, 100.0, 0, 1.0, DATA(w[0]),DATA(w[1]),DATA(w[2]) );
   */
 
-  monitor->addType( "torque 1-3");
-  monitor->registerData( -10.0, 10.0, 0, 1.0,
-			 DATA(torque[0]),
-			 DATA(torque[1]),
-			 DATA(torque[2]) );
-  monitor->addType( "torque 4-6");
-  monitor->registerData( -10.0, 10.0, 0, 1.0,
-			 DATA(torque[3]),
-			 DATA(torque[4]),
-			 DATA(torque[5]) );
-  monitor->addType( "torque 7-9");
-  monitor->registerData( -10.0, 10.0, 0, 1.0,
-			 DATA(torque[6]),
-			 DATA(torque[7]),
-			 DATA(torque[8]) );
+
+  monitor->addType( "torque");
+  for(int j =0; j<DOF;j++)
+    monitor->registerData( -1000.0, 1000.0, 0, 1.0, DATA(torque[j]) );
 
 
   

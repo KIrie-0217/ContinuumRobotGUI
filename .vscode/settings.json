@@ -1,6 +1,14 @@
 {
     "files.associations": {
         "*.tcc": "cpp",
-        "fstream": "cpp"
+        "fstream": "cpp",
+        "optional": "cpp",
+        "functional": "cpp",
+        "random": "cpp",
+        "future": "cpp",
+        "istream": "cpp",
+        "ostream": "cpp",
+        "sstream": "cpp",
+        "streambuf": "cpp"
     }
 }

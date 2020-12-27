@@ -16,6 +16,8 @@
 #endif
 
 
+int magneflag[DOF] = {1,1,1,1,1,1,1,1,1};
+
 unsigned int res(int n)
 	{ return 0xffffffff >> (32 - n);}
 
@@ -71,372 +73,412 @@ TS01 ts01[2];
 
 /*******************************************************************
  *    thread
- *******************************************************************/
+*******************************************************************/
 void* Controller::thread(void *p_arg){
-  ctrl_task.init();
-  printf("ctrl id = %d \n", id );
+ctrl_task.init();
+printf("ctrl id = %d \n", id );
 
-  long count = 0;
-  const int period = 1000;
-  const double dt = 1e-6 * period;
-  Ktl::Dynamics::setdt(dt);
-  
-  LogData buf;
+long count = 0;
+const int period = 1000;
+const double dt = 1e-6 * period;
+Ktl::Dynamics::setdt(dt);
 
-  int command;
-  int ret;
+LogData buf;
 
-
-  TS01OutputData output2[2];
-
-  Ktl::PPTrajectory<Ktl::Vector<3> > ptp;
-  
-  Ktl::FIFO fifoLog("sarm_log"+std::to_string(id));
-  fifoLog.open(Ktl::FIFO::NON_BLOCKING); 
-
-  Ktl::FIFO torqueInput("torque");
-  torqueInput.open(Ktl::FIFO::NON_BLOCKING);
- 
-
-  //Ktl::Timer timer;
-
-  flag_servo_on = false;
-
-  for(int j=0;j<DOF;j++){
-    joint[j].setup();
-    joint[j].init();
-    joint[j].setup_parameters();
-  }
-  
-  flag_emergency = false;
+int command;
+int ret;
 
 
-  //----------------------------------------
-  
-  state = MSS::STATE_SERVO_OFF;
-  
-  ctrl_task.start(period);
-  ctrl_task.wait_message(false);
-  
-  while(1) {
-    bool flag_command_received = false;
-    if( ctrl_task.receive(&command) ){
-      flag_command_received = true;
-      printf("received a command of %s from GUI at %ld\n",
-	     MSS::command_text(command),count);
-    }
+TS01OutputData output2[2];
 
-    if( flag_command_received ){
-      //printf("ctrl_thread : received command %d\n",command);
-      switch (command) {
+Ktl::PPTrajectory<Ktl::Vector<3> > ptp;
+
+Ktl::FIFO fifoLog("sarm_log"+std::to_string(id));
+fifoLog.open(Ktl::FIFO::NON_BLOCKING); 
+
+Ktl::FIFO torqueInput("torque");
+torqueInput.open(Ktl::FIFO::NON_BLOCKING);
+
+
+//Ktl::Timer timer;
+
+flag_servo_on = false;
+
+for(int j=0;j<DOF;j++){
+  joint[j].setup();
+  joint[j].init();
+  joint[j].setup_parameters();
+}
+
+flag_emergency = false;
+
+
+//----------------------------------------
+
+state = MSS::STATE_SERVO_OFF;
+
+ctrl_task.start(period);
+ctrl_task.wait_message(false);
+
+while(1) {
+  bool flag_command_received = false;
+  if( ctrl_task.receive(&command) ){
+    flag_command_received = true;
+    printf("received a command of %s from GUI at %ld\n",
+      MSS::command_text(command),count);
+  } // commandをGUIから受けたら表示
+
+
+  // COMMANDの類
+  if( flag_command_received ){
+    //printf("ctrl_thread : received command %d\n",command);
+    switch (command) {
+
       case MSS::COMMAND_SERVO_OFF:
-	state = MSS::STATE_SERVO_OFF;
-	flag_servo_on = false;
-	for(int j=0;j<DOF;j++)
-	  joint[j].tau_ref = 0.0;
-	break;
+        state = MSS::STATE_SERVO_OFF;
+        flag_servo_on = false;
+        for(int j=0;j<DOF;j++)
+          joint[j].tau_ref = 0.0;
+      break;
+
       case MSS::COMMAND_SERVO_ON:
-	if( state != MSS::STATE_SERVO_OFF ) break;
-	state = MSS::STATE_STANDBY;
-	flag_servo_on = true;
-	break;
+        if( state != MSS::STATE_SERVO_OFF ) break;
+        state = MSS::STATE_STANDBY;
+        flag_servo_on = true;
+      break;
+    
       case MSS::COMMAND_STOP: 
-	if( state == MSS::STATE_SERVO_OFF ) break;
-	DEBUG_PRINT("delta thread : stopped\n");
-	state = MSS::STATE_STANDBY;
-	break;
+        if( state == MSS::STATE_SERVO_OFF ) break;
+        DEBUG_PRINT("delta thread : stopped\n");
+        state = MSS::STATE_STANDBY;
+      break;
+    
       case MSS::COMMAND_START: //------------------------
-	if( state != MSS::STATE_STANDBY ) break;
+        if( state != MSS::STATE_STANDBY ) break;
 
-	for(int j=0;j<DOF;j++){
-	  joint[j].fc_qd = fc_qd;
-	  joint[j].setup_parameters();
-	}
-	//init();
-	gdiff.set_cutoff_frequency(10.0);
-	//printf("fc_fext=%f\n",fc_fext);
+        for(int j=0;j<DOF;j++){
+            joint[j].fc_qd = fc_qd;
+            joint[j].setup_parameters();
+        }
+        //init();
+        gdiff.set_cutoff_frequency(10.0);
+        //printf("fc_fext=%f\n",fc_fext);
 
-	DEBUG_PRINT("delta thread : period %d[us]\n",   period);
-	
-	switch(mode){
-	case MODE_TASK:
-	  state = MSS::STATE_PREPARING;
-	  break;
+        DEBUG_PRINT("delta thread : period %d[us]\n",   period);
 
-	case MODE_TEST_FK_MOTION:
-	  state = MSS::STATE_TEST_RUNNING;
+        switch(mode){
+          case MODE_TASK:
+            state = MSS::STATE_PREPARING;
+          break;
 
-	  for(int j=0;j<DOF;j++){
-	    joint[j].ptp.create( Qwave[j].generate(t),
-				 joint[j].q, 2.0, t);
-	  }
-	  rt_print("%ld : ptp start\n",count);
-	  break;
-	  
-	}
-	fifoLog.flush();
+          case MODE_TEST_FK_MOTION:
+            state = MSS::STATE_TEST_RUNNING;
 
-	break;
+            for(int j=0;j<DOF;j++){
+              joint[j].ptp.create( Qwave[j].generate(t),
+                joint[j].q, 2.0, t);
+            }
+            rt_print("%ld : ptp start\n",count);
+          break;
+  
+        }   
+        fifoLog.flush();
+
+      break;
+    
       case MSS::COMMAND_INIT_FORCE:
-	if( state == MSS::STATE_TASK_RUNNING ) break;
+        if( state == MSS::STATE_TASK_RUNNING ) break;
 
-	break;
+      break;
+
       case MSS::COMMAND_RESET_ORIGIN:
-	if( state < MSS::STATE_READY ){
-	  for(int i=0;i<2;i++)
-	    ts01[i].set_count(0);
-	  rt_print("ctrl thread: position initializing.\n");
-	  DEBUG_PRINT("delta thread: position initialized.\n");
-	}
+        if( state < MSS::STATE_READY ){
+          for(int i=0;i<2;i++)
+            ts01[i].set_count(0);
+          rt_print("ctrl thread: position initializing.\n");
+          DEBUG_PRINT("delta thread: position initialized.\n");
+        }
+      break;
+      //continue;
 
-	break;
-	//continue;
-	
       case MSS::COMMAND_GO_HOME:
-	if( state != MSS::STATE_READY ) break;
-	state = MSS::STATE_PREPARING;
+        if( state != MSS::STATE_READY ) break;
+        state = MSS::STATE_PREPARING;
 
-	DEBUG_PRINT("ctrl thread: setting home position\n");
+        DEBUG_PRINT("ctrl thread: setting home position\n");
 
-	break;
-	
+      break;
+
       case MSS::COMMAND_LOCK:
-	if( state != MSS::STATE_TASK_RUNNING ) break;
-	state = MSS::STATE_READY;
-	break;
+        if( state != MSS::STATE_TASK_RUNNING ) break;
+        state = MSS::STATE_READY;
+      break;
 
       case MSS::COMMAND_UNLOCK:
-	if( state != MSS::STATE_READY ) break;
-	state = MSS::STATE_TASK_RUNNING;
-	break;
+        if( state != MSS::STATE_READY ) break;
+        state = MSS::STATE_TASK_RUNNING;
+      break;
+    
       case MSS::COMMAND_CLEAR_ALARM: //----------------------------
-	DEBUG_PRINT("delta thread : clear\n");
-	flag_emergency = false;
+        DEBUG_PRINT("delta thread : clear\n");
+        flag_emergency = false;
+      break;
 
-	break;
-	
       default:
-	DEBUG_PRINT("unknown command %d\n",command);
-	//return 0;
-      }
+      DEBUG_PRINT("unknown command %d\n",command);
+      //return 0;
     }
+  }
 
-    
-    //=== UPDATE_MSS::STATE ==========================================
-    t = count * dt ;
-    /*
-    double ziki[9];
-    for(int i=0; i<9;i++){
-      ziki[i] = input2[0].v[i];
-    }  
-    printf("%d : %f %f %f  %f %f %f  %f %f %f\n",
-    count,
-    	ziki[0],ziki[1], ziki[2],
-    	ziki[3], ziki[4], ziki[5],
-    	ziki[6], ziki[7], ziki[8]);
-    */
+  
+  //=== UPDATE_MSS::STATE ==========================================
+  t = count * dt ;
 
-    
-    /*
-    torqueInput.get(torque,sizeof(torque));
-    printf("%d : %.3f %.3f %.3f  %.3f %.3f %.3f  %.3f %.3f %.3f\n",
-    count,
-    	torque[0], torque[1], torque[2],
-    	torque[3], torque[4], torque[5],
-    	torque[6], torque[7], torque[8]);
-      */
-    joint[0].update( RPP[0]*input2[0].count[0] / Rt[0] + Q0[0] );
+  /*
+  double ziki[9];
+  for(int i=0; i<9;i++){
+    ziki[i] = input2[0].v[i];
+  }  
+  printf("%d : %f %f %f  %f %f %f  %f %f %f\n",
+  count,
+    ziki[0],ziki[1], ziki[2],
+    ziki[3], ziki[4], ziki[5],
+    ziki[6], ziki[7], ziki[8]);
+  */
+
+  
+  
+  torqueInput.get(torque,sizeof(torque));
+  printf("%d : %.3f %.3f %.3f  %.3f %.3f %.3f  %.3f %.3f %.3f\n",
+  count,
+    torque[0], torque[1], torque[2],
+    torque[3], torque[4], torque[5],
+    torque[6], torque[7], torque[8]);
+  
+
+  joint[0].update( RPP[0]*input2[0].count[0] / Rt[0] + Q0[0] );
 
 
   for(int j=0; j<DOF; j++){
-      input2[0].v[j] = magne[j];
-    }
+    try{magne_[j]=magne[j];}
+    catch(char *){magne_[j]= 0;}
+    magne[j]= input2[0].v[j] ;
 
-
-    for(int i=0;i<2;i++){
-      std::cout <<joint[0].q<<std::endl;
-    }
-
-    
-    if( flag_emergency ){
-      for(int j=0;j<DOF;j++)
-	joint[j].tau_ref = 0.0;
-      u.zero();
-      flag_servo_on = false;
+    if(abs(magne[j]-magne_[j]) >2 and magne[j] < 3){
+      magneflag[j] = -1 * magneflag[j];
     }
     
-    
-    //=== main process ==========================================
-    switch(state){
-    case MSS::STATE_SERVO_OFF:
-    case MSS::STATE_STANDBY:
+  }
 
-      for(int j=0;j<DOF;j++){
-	joint[j].qref = joint[j].q;
-	joint[j].Qref.update();
-	joint[j].tau_ref = 0.0;
-      }
+  std::cout << state << std::endl;
 
-      break;
-    case MSS::STATE_PREPARING: //MSS::COMMAND_STARTにより遷移
+  /*
+  for(int i=0;i<2;i++){
+    std::cout <<joint[0].q<<std::endl;
+  }
+  */
+  
+  if( flag_emergency ){
+    for(int j=0;j<DOF;j++)
+      joint[j].tau_ref = 0.0;
+    u.zero();
+    flag_servo_on = false;
+  }
+  
+  
+  //=== main process ==========================================
+  switch(state){
+  case MSS::STATE_SERVO_OFF:
+  case MSS::STATE_STANDBY:
 
-      if( ptp.is_progressing(t) ){
-
-	for(int j=0;j<DOF;j++){
-	  //joint[j].qref = robotIK.q(j);
-	  joint[j].Qref.update();
-	  joint[j].feedback_control();
-	  joint[j].tau_ref = joint[j].tau_fb;
-	}
-      }
-      else{
-	printf("getting READY\n");
-	state = MSS::STATE_READY; //(locked)
-      }
-      break;
-      
-    case MSS::STATE_READY: //(locked)
-      for(int j=0;j<DOF;j++){
-	//joint[j].qref = robotIK.q(j);
-	joint[j].Qref.update();
-	joint[j].feedback_control();
-	joint[j].tau_ref = joint[j].tau_fb;
-      }
-      break;
-
-    case MSS::STATE_TASK_RUNNING:
-
-      mref.zero();
-      
-      if( flag_pose_lock ){ //
-	//wref.zero();
-	for(int j=3;j<DOF;j++){ //
-	  joint[j].qdref = 0.2 *( 0.0- joint[j].qd );
-	}
-      }
-
-      for(int j=0;j<DOF;j++){
-	joint[j].qref = joint[j].q;
-	joint[j].tau_ref = 0.0;
-      }
-
-      
-      for(int j=0;j<DOF;j++){
-	joint[j].feedforward_control(0,1,1);
-      }
-      
-      break;
-
-    case MSS::STATE_TEST_RUNNING:
-      if( mode == MODE_TEST_FK_MOTION ){
-	for(int j=0;j<DOF;j++){
-	  joint[j].qref = joint[j].ptp.track( Qwave[j].generate(t), t );
-	}
-      }
-      else if( mode == MODE_TEST_IK_MOTION ){
-
-	Ktl::Vector<6> qref;// = robotIK.q();
-	for(int j=3;j<DOF;j++)
-	  joint[j].qref = qref[j];
-	for(int j=3;j<DOF;j++)
-	  joint[j].qref = Pwave[j].generate(t);
-	
-      }
-      
-      for(int j=0;j<DOF;j++){
-	joint[j].Qref.update();
-	joint[j].Qdref.update();
-	joint[j].feedback_control();
-	joint[j].tau_ref = joint[j].tau_fb;
-      }
-
-      break; //END of TEST_RUNNING
-    } //switch(state)
-
-    
-    //==== gravity compensation (common process) =================
-    if( flag_feedforward ){
-      for(int j=0;j<DOF;j++){
-	joint[j].tau_ref += joint[j].tau_ff;
-	//printf("tau_ref %d %f\n",j,joint[j].tau_ref);
-      }
-    }
-    
-    //==== output =================================================
-    output2:
     for(int j=0;j<DOF;j++){
-      u[j] = Ktu[j] * joint[j].tau_ref / RR[j];
-      Ktl::limitRange(&u[j], -4.0, 4.0 );
-    }
-    
-    
-    for(int j=0; j<DOF; j++){
-      output2[0].dout[j] = flag_servo_on;
-      output2[0].u[j] = u[j];
+      joint[j].qref = joint[j].q;
+      joint[j].Qref.update();
+      joint[j].tau_ref = 0.0;
     }
 
+  break;
 
+  case MSS::STATE_PREPARING: //MSS::COMMAND_STARTにより遷移
 
-    for(int i=0;i<2;i++)
-      ts01[i].write_data(&output2[i]);
+    if( ptp.is_progressing(t) ){
 
+    for(int j=0;j<DOF;j++){
+      //joint[j].qref = robotIK.q(j);
+      joint[j].Qref.update();
+      joint[j].feedback_control();
+      joint[j].tau_ref = joint[j].tau_fb;
+    }
+    }
+    else{
+      printf("getting READY\n");
+      state = MSS::STATE_READY; //(locked)
+    }
+  break;
+    
+  case MSS::STATE_READY: //(locked)
+    for(int j=0;j<DOF;j++){
+      //joint[j].qref = robotIK.q(j);
+      joint[j].Qref.update();
+      joint[j].feedback_control();
+      joint[j].tau_ref = joint[j].tau_fb;
+    }
+  break;
 
-    if(  count % LOG_SKIP == 0 ){ //-- save data -----------------
-      buf.time = t;
-      int k=0;
-      for(int j=0;j<3;j++)
-	buf.mnp_data[k++] = 0;
-      
-      for(int j=0;j<DOF;j++){
-	buf.axis_data[j][LOG_Q_REF    ] = joint[j].qref;
-	buf.axis_data[j][LOG_Q_REF_D  ] = joint[j].qdref;
-	buf.axis_data[j][LOG_Q        ] = joint[j].q;
-	buf.axis_data[j][LOG_Q_D      ] = joint[j].qd;
-	buf.axis_data[j][LOG_TAU      ] = joint[j].tau_ref;
-	buf.axis_data[j][LOG_ZFF      ] = joint[j].tau_ff;
-	buf.axis_data[j][LOG_VOLTAGE  ] = u[j];
+  case MSS::STATE_TASK_RUNNING:
+
+    for(int j=0;j<DOF;j++){
+      joint[j].qref = joint[j].q + magneflag[j] * 10;
+      joint[j].Qref.update();
+      joint[j].Qdref.update();
+      joint[j].feedback_control();
+      joint[j].tau_ref = joint[j].tau_fb;
+    }
+    /*
+    mref.zero();
+    
+    if( flag_pose_lock ){ //
+      //wref.zero();
+      for(int j=3;j<DOF;j++){ //
+        joint[j].qdref = 0.2 *( 0.0- joint[j].qd );
       }
-      fifoLog.put(&buf,sizeof(buf));
+    }
+
+    for(int j=0;j<DOF;j++){
+      joint[j].qref = joint[j].q;
+      joint[j].tau_ref = 0.0;
+    }
+
+    
+    for(int j=0;j<DOF;j++){
+      joint[j].feedforward_control(0,1,1);
+    }
+
+    */
+    
+  break;
+
+  case MSS::STATE_TEST_RUNNING:
+    if( mode == MODE_TEST_FK_MOTION ){
+      for(int j=0;j<DOF;j++){
+        joint[j].qref = joint[j].ptp.track( Qwave[j].generate(t), t );
+      }
+    }
+    else if( mode == MODE_TEST_IK_MOTION ){
+
+      Ktl::Vector<6> qref;// = robotIK.q();
+      for(int j=3;j<DOF;j++)
+        joint[j].qref = qref[j];
+      for(int j=3;j<DOF;j++)
+        joint[j].qref = Pwave[j].generate(t);      
     }
     
-    do_nothing:
-    count++;
+    for(int j=0;j<DOF;j++){
+      joint[j].Qref.update();
+      joint[j].Qdref.update();
+      joint[j].feedback_control();
+      joint[j].tau_ref = joint[j].tau_fb;
+    }
 
-    ctrl_task.wait();
+  break; //END of TEST_RUNNING
+
+  } //switch(state)
+
+
+  // interlock----------------------------
+
+  for(int j=0; j<DOF; j++){
+    if(torque[j] > 500){
+      state = MSS::STATE_SERVO_OFF;
+    }
     
-  } //while
+  }
 
-    return 0;
+  
+  //==== gravity compensation (common process) =================
+  if( flag_feedforward ){
+    for(int j=0;j<DOF;j++){
+      joint[j].tau_ref += joint[j].tau_ff;
+      //printf("tau_ref %d %f\n",j,joint[j].tau_ref);
+    }
+  }
+
+   
+  //==== output =================================================
+  output2:
+  for(int j=0;j<DOF;j++){
+    u[j] = Ktu[j] * joint[j].tau_ref / RR[j];
+    Ktl::limitRange(&u[j], -4.0, 4.0 );
+  }
+  
+  
+  for(int j=0; j<DOF; j++){
+    output2[0].dout[j] = flag_servo_on;
+    output2[0].u[j] = u[j];
+  }
+
+
+
+  for(int i=0;i<2;i++)
+    ts01[i].write_data(&output2[i]);
+
+
+  if(  count % LOG_SKIP == 0 ){ //-- save data -----------------
+    buf.time = t;
+    int k=0;
+    for(int j=0;j<3;j++)
+buf.mnp_data[k++] = 0;
+    
+    for(int j=0;j<DOF;j++){
+buf.axis_data[j][LOG_Q_REF    ] = joint[j].qref;
+buf.axis_data[j][LOG_Q_REF_D  ] = joint[j].qdref;
+buf.axis_data[j][LOG_Q        ] = joint[j].q;
+buf.axis_data[j][LOG_Q_D      ] = joint[j].qd;
+buf.axis_data[j][LOG_TAU      ] = joint[j].tau_ref;
+buf.axis_data[j][LOG_ZFF      ] = joint[j].tau_ff;
+buf.axis_data[j][LOG_VOLTAGE  ] = u[j];
+    }
+    fifoLog.put(&buf,sizeof(buf));
+  }
+  
+  do_nothing:
+  count++;
+
+  ctrl_task.wait();
+  
+} //while
+
+  return 0;
 }
 
 static void *ctrl_thread(void *p_arg){
-  const int id   = *((int*) p_arg);
-  printf("starting thread %d\n",id);
-  return mctrl->thread(p_arg);
+const int id   = *((int*) p_arg);
+printf("starting thread %d\n",id);
+return mctrl->thread(p_arg);
 }
 
 
 int fifo_handler(void* p_msg){
-  int* msg = (int*) p_msg;
+int* msg = (int*) p_msg;
 
-  ctrl_task.send( *msg );
+ctrl_task.send( *msg );
 
-  DEBUG_PRINT("sarm fifo_handler send %d\n",*msg);
- return 0;
+DEBUG_PRINT("sarm fifo_handler send %d\n",*msg);
+return 0;
 }
 
 
 
 void* sampling_thread(void *p_arg){
-  int id = * (int*)p_arg;
-  
-  while(1) {
-    //
-    ssize_t rsize = ts01[id].read_autosampling_data(&input2[id]);
-    //input2[1].print();
-  }
-  //printf("thread done\n");
-  return 0;
+int id = * (int*)p_arg;
+
+while(1) {
+  //
+  ssize_t rsize = ts01[id].read_autosampling_data(&input2[id]);
+  //input2[1].print();
+}
+//printf("thread done\n");
+return 0;
 }
 
 /*******************************************************************
