@@ -115,17 +115,20 @@ flag_emergency = false;
 
 //----------------------------------------
 
-state = MSS::STATE_SERVO_OFF;
+state = STATE_SERVO_OFF;
 
 ctrl_task.start(period);
 ctrl_task.wait_message(false);
+
+
+std::cout << "before while" << std::endl;
 
 while(1) {
   bool flag_command_received = false;
   if( ctrl_task.receive(&command) ){
     flag_command_received = true;
     printf("received a command of %s from GUI at %ld\n",
-      MSS::command_text(command),count);
+      command_text(command),count);
   } // commandをGUIから受けたら表示
 
 
@@ -134,27 +137,29 @@ while(1) {
     //printf("ctrl_thread : received command %d\n",command);
     switch (command) {
 
-      case MSS::COMMAND_SERVO_OFF:
-        state = MSS::STATE_SERVO_OFF;
+      case COMMAND_SERVO_OFF:
+        state = STATE_SERVO_OFF;
         flag_servo_on = false;
+        tasks = TASKS_FIRST;
         for(int j=0;j<DOF;j++)
           joint[j].tau_ref = 0.0;
       break;
 
-      case MSS::COMMAND_SERVO_ON:
-        if( state != MSS::STATE_SERVO_OFF ) break;
-        state = MSS::STATE_STANDBY;
+      case COMMAND_SERVO_ON:
+        if( state != STATE_SERVO_OFF ) break;
+        state = STATE_STANDBY;
+        tasks = TASKS_FIRST;
         flag_servo_on = true;
       break;
     
-      case MSS::COMMAND_STOP: 
-        if( state == MSS::STATE_SERVO_OFF ) break;
+      case COMMAND_STOP: 
+        if( state == STATE_SERVO_OFF ) break;
         DEBUG_PRINT("delta thread : stopped\n");
-        state = MSS::STATE_STANDBY;
+        state = STATE_STANDBY;
       break;
     
-      case MSS::COMMAND_START: //------------------------
-        if( state != MSS::STATE_STANDBY ) break;
+      case COMMAND_START: //------------------------
+        if( state != STATE_STANDBY ) break;
 
         for(int j=0;j<DOF;j++){
             joint[j].fc_qd = fc_qd;
@@ -168,11 +173,11 @@ while(1) {
 
         switch(mode){
           case MODE_TASK:
-            state = MSS::STATE_PREPARING;
+            state = STATE_PREPARING;
           break;
 
           case MODE_TEST_FK_MOTION:
-            state = MSS::STATE_TEST_RUNNING;
+            state = STATE_TEST_RUNNING;
 
             for(int j=0;j<DOF;j++){
               joint[j].ptp.create( Qwave[j].generate(t),
@@ -186,13 +191,36 @@ while(1) {
 
       break;
     
-      case MSS::COMMAND_INIT_FORCE:
-        if( state == MSS::STATE_TASK_RUNNING ) break;
+      case COMMAND_C:
+        if( state != STATE_PREPARING ) break;
+        tasks = TASKS_C;
+        state = STATE_PREPARING;
+      break;
+
+
+      case COMMAND_L:
+        if(state != STATE_PREPARING  ) break;
+        tasks = TASKS_L;
+        state = STATE_PREPARING;
+      break;
+
+
+      case COMMAND_G:
+        if(state != STATE_PREPARING ) break;
+        tasks = TASKS_G;
+        state = STATE_PREPARING;
+      break;
+
+
+      case COMMAND_INIT:
+        if( state != STATE_PREPARING  ) break;
+        tasks = TASKS_I;
+        state = STATE_PREPARING;
 
       break;
 
-      case MSS::COMMAND_RESET_ORIGIN:
-        if( state < MSS::STATE_READY ){
+      case COMMAND_RESET_ORIGIN:
+        if( state < STATE_READY ){
           for(int i=0;i<2;i++)
             ts01[i].set_count(0);
           rt_print("ctrl thread: position initializing.\n");
@@ -201,37 +229,22 @@ while(1) {
       break;
       //continue;
 
-      case MSS::COMMAND_GO_HOME:
-        if( state != MSS::STATE_READY ) break;
-        state = MSS::STATE_PREPARING;
 
-        DEBUG_PRINT("ctrl thread: setting home position\n");
-
+      case COMMAND_LOCK:
+        if( state != STATE_TASK_RUNNING ) break;
+        state = STATE_READY;
       break;
 
-      case MSS::COMMAND_LOCK:
-        if( state != MSS::STATE_TASK_RUNNING ) break;
-        state = MSS::STATE_READY;
+      case COMMAND_UNLOCK:
+        if( state != STATE_READY ) break;
+        state = STATE_TASK_RUNNING;
       break;
 
-      case MSS::COMMAND_UNLOCK:
-        if( state != MSS::STATE_READY ) break;
-        state = MSS::STATE_TASK_RUNNING;
-      break;
-    
-      case MSS::COMMAND_CLEAR_ALARM: //----------------------------
-        DEBUG_PRINT("delta thread : clear\n");
-        flag_emergency = false;
-      break;
-
-      default:
-      DEBUG_PRINT("unknown command %d\n",command);
-      //return 0;
     }
   }
 
   
-  //=== UPDATE_MSS::STATE ==========================================
+  //=== UPDATE_STATE ==========================================
   t = count * dt ;
 
   /*
@@ -270,7 +283,10 @@ while(1) {
     
   }
 
-  std::cout << state << std::endl;
+  std::cout <<"state:" <<state << std::endl;
+  std::cout<< "mode:" << mode << std::endl;
+  std::cout<< "tasks:" << tasks << std::endl;
+
 
   /*
   for(int i=0;i<2;i++){
@@ -288,8 +304,8 @@ while(1) {
   
   //=== main process ==========================================
   switch(state){
-    case MSS::STATE_SERVO_OFF:
-    case MSS::STATE_STANDBY:
+    case STATE_SERVO_OFF:
+    case STATE_STANDBY:
 
       for(int j=0;j<DOF;j++){
         joint[j].qref = joint[j].q;
@@ -299,7 +315,7 @@ while(1) {
 
     break;
 
-    case MSS::STATE_PREPARING: //MSS::COMMAND_STARTにより遷移
+    case STATE_PREPARING: //COMMAND_STARTにより遷移
 
       if( ptp.is_progressing(t) ){
 
@@ -312,11 +328,11 @@ while(1) {
       }
       else{
         printf("getting READY\n");
-        state = MSS::STATE_READY; //(locked)
+        state = STATE_READY; //(locked)
       }
     break;
-      
-    case MSS::STATE_READY: //(locked)
+        
+    case STATE_READY: //(locked)
       for(int j=0;j<DOF;j++){
         //joint[j].qref = robotIK.q(j);
         joint[j].Qref.update();
@@ -325,29 +341,21 @@ while(1) {
       }
     break;
 
-    case MSS::STATE_TASK_RUNNING:
+    case STATE_TASK_RUNNING:
       switch(tasks){
-        case LINE:
-        break;
-        
-        case C_CURVATURE:
-          for(int j=0;j<DOF;j++){
-            joint[j].qref = joint[j].q + magneflag[j] * 10;
-            joint[j].Qref.update();
-            joint[j].Qdref.update();
-            joint[j].feedback_control();
-            joint[j].tau_ref = joint[j].tau_fb;
-          }
+        case TASKS_C:
         break;
 
-        case S_CURVATURE:
+        case TASKS_G:
         break;
 
-        case GASTURBINE:
+        case TASKS_L:
         break;
 
-        case INITIALIZE:
+        case TASKS_I:
         break;
+
+      }
 
       /*
       mref.zero();
@@ -364,16 +372,16 @@ while(1) {
         joint[j].tau_ref = 0.0;
       }
 
-      
+        
       for(int j=0;j<DOF;j++){
         joint[j].feedforward_control(0,1,1);
       }
 
       */
-      }
+      
     break;
 
-    case MSS::STATE_TEST_RUNNING:
+    case STATE_TEST_RUNNING:
       if( mode == MODE_TEST_FK_MOTION ){
         for(int j=0;j<DOF;j++){
           joint[j].qref = joint[j].ptp.track( Qwave[j].generate(t), t );
@@ -404,7 +412,7 @@ while(1) {
 
   for(int j=0; j<DOF; j++){
     if(torque[j] > 500){
-      state = MSS::STATE_SERVO_OFF;
+      state = STATE_SERVO_OFF;
     }
     
   }
@@ -465,6 +473,7 @@ buf.axis_data[j][LOG_VOLTAGE  ] = u[j];
 
   return 0;
 }
+
 
 static void *ctrl_thread(void *p_arg){
 const int id   = *((int*) p_arg);

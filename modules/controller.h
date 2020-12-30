@@ -14,31 +14,95 @@ enum ControlMode{
   MODE_TEST_FK_MOTION,
 };
 
-enum Tasks{
-  LINE,
-  C_CURVATURE,
-  S_CURVATURE,
-  GASTURBINE,
-  INITIALIZE,
-  TASKS_LAST,
+enum Command{
+  COMMAND_SERVO_ON, //motor on
+  COMMAND_SERVO_OFF,//motor off
+  COMMAND_START, //位置制御を開始し司令を待つ
+  COMMAND_STOP,  //位置制御を停止する
+  COMMAND_LOCK, //lock when mode is task 
+  COMMAND_UNLOCK, //unlock when mode is task
+  COMMAND_INIT, //Init
+  COMMAND_C,
+  COMMAND_L,
+  COMMAND_G,
+  COMMAND_RESET_ORIGIN,
+  COMMAND_ABORT,//SERVO_OFFと同じ.
+  COMMAND_LAST
 };
 
 
-static const char* tasks_text(int com){
-  static const char* tasks_text[]={
-  "LINE",
+static const char* command_text(int com){
+  static const char* command_text[]={
+  "SERVO_ON",
+  "SERVO_OFF",
+  "START",
+  "STOP",
+  "LOCK",
+  "UNLOCK",
+  "INIT",
   "C",
-  "S",
-  "GASTURBINE",
-  "INITIALIZE",
+  "L",
+  "G",
+  "RESET_ORIGIN",
+  "ABORT",
   };
   
-  if( com < 0 || com >= TASKS_LAST ){
+  if( com < 0 || com >= COMMAND_LAST ){
     return "INVALID_COMMAND";
   }
-  return tasks_text[com];
+  return command_text[com];
 }
 
+
+
+enum State{
+  STATE_SERVO_OFF,
+  //モータドライバサーボオフの状態
+
+  STATE_STANDBY,
+  //サーボオンとなりトルク制御された状態
+
+  STATE_PREPARING,
+  //befor unlock
+
+  STATE_READY,
+  //司令を受け付ける状態
+
+  STATE_TASK_RUNNING,
+  //司令されたタスクを実行している状態・タスクが正常終了するとREADY状態に戻る
+
+  STATE_TEST_RUNNING,
+  //テスト動作中．開発用
+
+  STATE_INTERLOCK,
+  //INTERLOCK
+
+  STATE_LAST
+};
+ 
+static const char* state_text(int state){
+  static const char* state_text[]={
+    "SERVO_OFF",
+    "STANDBY",
+    "PREPARING",
+    "READY",
+    "TASK_RUNNING",
+    "TEST_RUNNING",
+    "INTERLOCK"
+  };
+  if( state < 0 || state >= STATE_LAST ){
+    return "INVALID_STATE";
+  }
+  return state_text[state];
+};
+
+enum tasks_mode{
+  TASKS_FIRST,
+  TASKS_C,
+  TASKS_L,
+  TASKS_G,
+  TASKS_I,
+};
 
 
 

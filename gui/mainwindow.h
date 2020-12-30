@@ -28,7 +28,7 @@ Q_OBJECT
   KQt::ParameterManager pm;
   KQt::StartStopManager* startstop;  
   KQt::ModeSelector* modeSelector;
-  KQt::ModeSelector* tasksSelector;
+
   KQt::DataLogger* dataLogger;
   KQt::Plotter* plotter;
   KQt::SignalMonitor* monitor;
@@ -47,7 +47,6 @@ Q_OBJECT
   Ktl::FileReader fr;
   
   void getParam();
-  void getTasks();
 
   //-- override from MainWindow ------------
   void loadFile(const QString &fileName);
@@ -61,7 +60,6 @@ Q_OBJECT
   void execReferenceDialog();
   void applyReferences();
   void sendCommand(int id);
-  void sendTasks(int id);
 
   //void operateJointMotion(int id,int trigger,int direction);
   void operateCartesianMotion(int id,int trigger,int direction);
