@@ -71,6 +71,7 @@ readCSV CSVreader;
 std::vector<std::vector<double>> C_csv;
 std::vector<std::vector<double>> L_csv;
 std::vector<std::vector<double>> G_csv;
+int taskcount;
 
 //Ktl::FIFO fifoInput[2];
 TS01InputData input2[2];
@@ -249,6 +250,7 @@ while(1) {
       case COMMAND_UNLOCK:
         if( state != STATE_READY ) break;
         state = STATE_TASK_RUNNING;
+        taskcount = 0;
       break;
 
     }
@@ -353,22 +355,32 @@ while(1) {
     case STATE_TASK_RUNNING:
       switch(tasks){
         case TASKS_C:
-          for(int j=0;j<DOF;j++){
-            joint[j].qref = 2*sin(1*PI*count/1000);
+          if(taskcount % 10 == 0 and C_csv[0].size() < taskcount/10){
+            for(int j=0;j<DOF;j++){
+              joint[j].qref = C_csv[j][taskcount/10%10];
 
+            }
           }
+          taskcount += 1;
         break;
 
         case TASKS_G:
-          for(int j=0;j<DOF;j++){
-            joint[j].qref = 2;
+          if(taskcount % 10 == 0 and G_csv[0].size() < taskcount/10){
+            for(int j=0;j<DOF;j++){
+              joint[j].qref = G_csv[j][taskcount/10%10];
+
+            }
           }
-        break;
+          taskcount += 1;        break;
 
         case TASKS_L:
-          for(int j=0;j<DOF;j++){
-            joint[j].qref = 5;
-          }        
+          if(taskcount % 10 == 0 and L_csv[0].size() < taskcount/10){
+            for(int j=0;j<DOF;j++){
+              joint[j].qref = L_csv[j][taskcount/10%10];
+
+            }
+          }
+          taskcount += 1;
         break;
 
         case TASKS_I:
