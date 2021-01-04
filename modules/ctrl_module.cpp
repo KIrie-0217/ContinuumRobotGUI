@@ -192,30 +192,30 @@ while(1) {
       break;
     
       case COMMAND_C:
-        if( state != STATE_PREPARING ) break;
+        if( state != STATE_STANDBY ) break;
         tasks = TASKS_C;
-        state = STATE_PREPARING;
+        state = STATE_STANDBY;
       break;
 
 
       case COMMAND_L:
-        if(state != STATE_PREPARING  ) break;
+        if(state != STATE_STANDBY  ) break;
         tasks = TASKS_L;
-        state = STATE_PREPARING;
+        state = STATE_STANDBY;
       break;
 
 
       case COMMAND_G:
-        if(state != STATE_PREPARING ) break;
+        if(state != STATE_STANDBY ) break;
         tasks = TASKS_G;
-        state = STATE_PREPARING;
+        state = STATE_STANDBY;
       break;
 
 
       case COMMAND_INIT:
-        if( state != STATE_PREPARING  ) break;
+        if( state != STATE_STANDBY  ) break;
         tasks = TASKS_I;
-        state = STATE_PREPARING;
+        state = STATE_STANDBY;
 
       break;
 
@@ -259,8 +259,6 @@ while(1) {
     ziki[6], ziki[7], ziki[8]);
   */
 
-  
-  
   torqueInput.get(torque,sizeof(torque));
   printf("%d : %.3f %.3f %.3f  %.3f %.3f %.3f  %.3f %.3f %.3f\n",
   count,
@@ -344,16 +342,33 @@ while(1) {
     case STATE_TASK_RUNNING:
       switch(tasks){
         case TASKS_C:
+          for(int j=0;j<DOF;j++){
+            joint[j].qref = 2*sin(1*PI*count/1000);
+
+          }
         break;
 
         case TASKS_G:
+          for(int j=0;j<DOF;j++){
+            joint[j].qref = 2;
+          }
         break;
 
         case TASKS_L:
+          for(int j=0;j<DOF;j++){
+            joint[j].qref = 5;
+          }        
         break;
 
         case TASKS_I:
         break;
+
+        for(int j=0;j<DOF;j++){
+          joint[j].Qref.update();
+          joint[j].Qdref.update();
+          joint[j].feedback_control();
+          joint[j].tau_ref = joint[j].tau_fb;
+        }
 
       }
 
@@ -520,7 +535,7 @@ int main(int ac,char* av[]){
   }
   else{
 	ts01[0].open("192.168.1.100",0);
-	ts01[1].open("192.168.1.101",1);
+	//ts01[1].open("192.168.1.101",1);
   }
 
   Ktl::Thread as_thread[2];
