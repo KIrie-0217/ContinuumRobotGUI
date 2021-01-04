@@ -8,6 +8,8 @@
 //#include "arm.h"
 #include "controller.h"
 
+#include "./wire_ref/readCSV.h"
+
 #define DEBUG
 #ifdef DEBUG
 # define DEBUG_PRINT(...) printf(__VA_ARGS__)
@@ -65,10 +67,13 @@ static RTTask ctrl_task;
 
 Controller* mctrl;
 
+readCSV CSVreader;
+std::vector<std::vector<double>> C_csv;
+std::vector<std::vector<double>> L_csv;
+std::vector<std::vector<double>> G_csv;
 
 //Ktl::FIFO fifoInput[2];
 TS01InputData input2[2];
-
 TS01 ts01[2];
 
 /*******************************************************************
@@ -77,6 +82,8 @@ TS01 ts01[2];
 void* Controller::thread(void *p_arg){
 ctrl_task.init();
 printf("ctrl id = %d \n", id );
+
+
 
 long count = 0;
 const int period = 1000;
@@ -112,6 +119,10 @@ for(int j=0;j<DOF;j++){
 
 flag_emergency = false;
 
+std::cout << "csv_reading" << std::endl;
+C_csv = CSVreader.read_out("wire_C.csv");
+L_csv = CSVreader.read_out("wire_L.csv");
+//G_csv = CSVreader.read_out("wire_G.csv");
 
 //----------------------------------------
 
