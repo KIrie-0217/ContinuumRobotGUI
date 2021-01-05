@@ -18,8 +18,6 @@
 #endif
 
 
-int magneflag[DOF] = {1,1,1,1,1,1,1,1,1};
-
 unsigned int res(int n)
 	{ return 0xffffffff >> (32 - n);}
 
@@ -33,22 +31,27 @@ static const double Rt[DOF] = //関節角度とエンコーダ角度との伝達
 
 static const double RPP[DOF] = { //１パルス(1LBR)あたりの角度 abs *not gear but motor
   2 * PI / 1024 /4,
- 2 * PI / 1024,
- 2 * PI / 1024,
- 2 * PI / 1024,
- 2 * PI / 1024,
- 2 * PI / 1024,
- 2 * PI / 1024,
- 2 * PI / 1024,
+ 2 * PI / 1024 /4,
+ 2 * PI / 1024 /4,
+ 2 * PI / 1024 /4,
+ 2 * PI / 1024 /4,
+ 2 * PI / 1024 /4,
+ 2 * PI / 1024 /4,
+ 2 * PI / 1024 /4,
 
  
 };
 static const double Ktu[DOF] = { //モータトルクから指令電圧への変換
   
   1.0/0.22/6.58, // 1/(800mA/V)/(231mNm/A)
-  1.0/0.8/231,
-  -1.0/0.6/217,
-  10.0/15.3, 10.0/57.8, 10.0/15.3,  10.0/15.3  ,10.0/15.3  ,10.0/15.3  
+  1.0/0.22/6.58,
+  1.0/0.22/6.58,
+  1.0/0.22/6.58,
+  1.0/0.22/6.58,
+  1.0/0.22/6.58,
+  1.0/0.22/6.58,
+  1.0/0.22/6.58,
+  1.0/0.22/6.58,
 };
 
 static const double Q0[DOF] = 
@@ -62,6 +65,12 @@ double shift_range(double val){
   else
     return val - 2*PI;
 }
+
+int Init_flag[DOF] =  {0,0,0,0,0,0,0,0,0};
+int Init_flag_total = 0;
+double qInit[DOF] = {0,0,0,0,0,0,0,0,0};
+int magneflag[DOF] = {1,1,1,1,1,1,1,1,1};
+
 
 static RTTask ctrl_task;
 
@@ -120,10 +129,7 @@ for(int j=0;j<DOF;j++){
 
 flag_emergency = false;
 
-std::cout << "csv_reading" << std::endl;
-C_csv = CSVreader.read_out("wire_C.csv");
-L_csv = CSVreader.read_out("wire_L.csv");
-//G_csv = CSVreader.read_out("wire_G.csv");
+
 
 //----------------------------------------
 
@@ -273,31 +279,37 @@ while(1) {
   */
 
   torqueInput.get(torque,sizeof(torque));
+
+  /*
   printf("%d : %.3f %.3f %.3f  %.3f %.3f %.3f  %.3f %.3f %.3f\n",
   count,
     torque[0], torque[1], torque[2],
     torque[3], torque[4], torque[5],
     torque[6], torque[7], torque[8]);
   
-
-  joint[0].update( RPP[0]*input2[0].count[0] / Rt[0] + Q0[0] );
-
+*/
+for(int j=0;j<DOF;j++){
+  if(j < DOF-1){
+    joint[j].update( RPP[j]*input2[0].count[j] / Rt[j] + Q0[j] );
+  }
+  else{
+    joint[j].update( RPP[j]*input2[1].count[0] / Rt[j] + Q0[j] );
+  }
+}
 
   for(int j=0; j<DOF; j++){
-    try{magne_[j]=magne[j];}
-    catch(char *){magne_[j]= 0;}
+    if(j< DOF-1){
     magne[j]= input2[0].v[j] ;
-
-    if(abs(magne[j]-magne_[j]) >2 and magne[j] < 3){
-      magneflag[j] = -1 * magneflag[j];
     }
-    
+    else{
+    magne[j]=input2[1].v[0];
+    }
   }
-
+  /*
   std::cout <<"state:" <<state << std::endl;
   std::cout<< "mode:" << mode << std::endl;
   std::cout<< "tasks:" << tasks << std::endl;
-
+  */
 
   /*
   for(int i=0;i<2;i++){
@@ -384,16 +396,54 @@ while(1) {
         break;
 
         case TASKS_I:
+          std::cout << "task I status----------" << std::endl;
+          std::cout << "Init flag[0]:" << Init_flag[0] <<std::endl;
+          std::cout << "magne[0]:" << magne[0] <<std::endl;
+
+          for(int j=0;j<DOF;j++){
+            if(torque[j] > 500 and Init_flag[j] == 0){
+              Init_flag[j] = 1;
+              qInit[j] = joint[j].q;
+            }
+
+            if(Init_flag[j]==0){
+              joint[j].qref += 0.0001;
+              std::cout << "joint qref[0]:" << joint[0].qref <<std::endl;
+            }
+            else if(Init_flag[j] == 1 and magne[j] > 3){
+              joint[j].qref -= 0.0001;
+            }
+            else if(Init_flag[j] == 1 and magne[j] < 3){
+              Init_flag[j] = 2;
+              qInit[j] -= joint[j].q;
+            }
+            else if(Init_flag[j] = 2){
+              joint[j].q = 0;
+              joint[j].qref =0;
+            }
+
+          }
+
+          Init_flag_total = 0;
+          for(int j= 0;j<DOF;j++){
+            Init_flag_total += Init_flag[j];    
+          }
+          if(Init_flag_total == 2*DOF){
+            ts01[0].set_count(0);
+            ts01[1].set_count(0);
+          }
+
         break;
-
-        for(int j=0;j<DOF;j++){
-          joint[j].Qref.update();
-          joint[j].Qdref.update();
-          joint[j].feedback_control();
-          joint[j].tau_ref = joint[j].tau_fb;
-        }
-
       }
+      
+      for(int j=0;j<DOF;j++){
+        joint[j].Qref.update();
+        joint[j].Qdref.update();
+        joint[j].feedback_control();
+        joint[j].tau_ref = joint[j].tau_fb;
+      }
+
+      
 
       /*
       mref.zero();
@@ -449,7 +499,7 @@ while(1) {
   // interlock----------------------------
 
   for(int j=0; j<DOF; j++){
-    if(torque[j] > 500){
+    if(torque[j] > 5000){
       state = STATE_SERVO_OFF;
     }
     
@@ -547,6 +597,22 @@ return 0;
  *     init_module
  *******************************************************************/
 int main(int ac,char* av[]){
+    /*
+    try{
+      std::cout << "csv_reading" << std::endl;
+      C_csv = CSVreader.read_out("./wire_ref/wire_C.csv");
+      std::cout << "csv_readed" << std::endl;
+      L_csv = CSVreader.read_out("./wire_ref/wire_L.csv");
+      std::cout << "csv_readed2:" << L_csv[0][0] <<std::endl;
+      //G_csv = CSVreader.read_out("wire_G.csv");
+      std::string errormessage ;
+      errormessage = "cant";
+      throw errormessage;
+    }catch(std::string errormessage){
+      std::cout << errormessage << std::endl;
+    }
+    */
+
   std::string name = "sarm_module"+std::to_string(0);
   //Ktl::ManagedProcess mp(name);
   Ktl::FIFOHandler handler(name);
@@ -558,7 +624,7 @@ int main(int ac,char* av[]){
   }
   else{
 	ts01[0].open("192.168.1.100",0);
-	//ts01[1].open("192.168.1.101",1);
+	ts01[1].open("192.168.1.101",1);
   }
 
   Ktl::Thread as_thread[2];
