@@ -212,10 +212,26 @@ MainWindow::MainWindow(int id2){
   */
 
 
-  monitor->addType( "torque");
+  monitor->addType( "torque 1-3");
   for(int j =0; j<DOF;j++)
-    monitor->registerData( -1000.0, 1000.0, 0, 1.0, DATA(torque[j]) );
+    monitor->registerData( -1000.0, 1000.0, 0, 1.0, 
+      DATA(torque[0]), 
+      DATA(torque[1]),
+      DATA(torque[2]));
 
+  monitor->addType( "torque 4-6");
+  for(int j =0; j<DOF;j++)
+    monitor->registerData( -1000.0, 1000.0, 0, 1.0, 
+      DATA(torque[3]), 
+      DATA(torque[4]),
+      DATA(torque[5]));
+
+  monitor->addType( "torque 7-9");
+  for(int j =0; j<DOF;j++)
+    monitor->registerData( -1000.0, 1000.0, 0, 1.0, 
+      DATA(torque[6]), 
+      DATA(torque[7]),
+      DATA(torque[8]));
 
   //---------------------------------------------------------------
   //monitor->addType( "gr");

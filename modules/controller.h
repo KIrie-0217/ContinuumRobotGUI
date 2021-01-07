@@ -26,6 +26,7 @@ enum Command{
   COMMAND_L,
   COMMAND_G,
   COMMAND_RESET_ORIGIN,
+  COMMAND_INTERLOCK_RELEACE,
   COMMAND_ABORT,//SERVO_OFFと同じ.
   COMMAND_LAST
 };
@@ -44,6 +45,7 @@ static const char* command_text(int com){
   "L",
   "G",
   "RESET_ORIGIN",
+  "interlock_releace",
   "ABORT",
   };
   
@@ -74,7 +76,7 @@ enum State{
   STATE_TEST_RUNNING,
   //テスト動作中．開発用
 
-  STATE_INTERLOCK,
+  STATE_INTERLOCK_RELEACE,
   //INTERLOCK
 
   STATE_LAST

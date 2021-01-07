@@ -38,7 +38,7 @@ static const double RPP[DOF] = { //１パルス(1LBR)あたりの角度 abs *not
  2 * PI / 1024 /4,
  2 * PI / 1024 /4,
  2 * PI / 1024 /4,
-
+ 2 * PI / 1024 /4,
  
 };
 static const double Ktu[DOF] = { //モータトルクから指令電圧への変換
@@ -70,7 +70,10 @@ int Init_flag[DOF] =  {0,0,0,0,0,0,0,0,0};
 int Init_flag_total = 0;
 double qInit[DOF] = {0,0,0,0,0,0,0,0,0};
 int magneflag[DOF] = {1,1,1,1,1,1,1,1,1};
-
+int interlock_flag = 0;
+int interlock_clear =0;
+int interlocked_q[DOF] = {0,0,0,0,0,0,0,0,0};
+int task_time = 0;
 
 static RTTask ctrl_task;
 
@@ -173,6 +176,9 @@ while(1) {
       case COMMAND_STOP: 
         if( state == STATE_SERVO_OFF ) break;
         DEBUG_PRINT("delta thread : stopped\n");
+        for(int j =0;j <DOF;j++){
+          Init_flag[j] = 0;
+        }
         state = STATE_STANDBY;
       break;
     
@@ -226,6 +232,7 @@ while(1) {
       case COMMAND_G:
         if(state != STATE_STANDBY ) break;
         tasks = TASKS_G;
+        task_time = 0;
         state = STATE_STANDBY;
       break;
 
@@ -259,6 +266,11 @@ while(1) {
         taskcount = 0;
       break;
 
+      case COMMAND_INTERLOCK_RELEACE:
+        if(state != STATE_SERVO_OFF) break;
+        if(interlock_flag != 1) break;
+        state = STATE_INTERLOCK_RELEACE;
+      break;
     }
   }
 
@@ -289,12 +301,12 @@ while(1) {
   
 */
 for(int j=0;j<DOF;j++){
-  if(j < DOF-1){
+  if(j != DOF-1){
     joint[j].update( RPP[j]*input2[0].count[j] / Rt[j] + Q0[j] );
   }
   else{
     joint[j].update( RPP[j]*input2[1].count[0] / Rt[j] + Q0[j] );
-  }
+  } 
 }
 
   for(int j=0; j<DOF; j++){
@@ -366,71 +378,78 @@ for(int j=0;j<DOF;j++){
 
     case STATE_TASK_RUNNING:
       switch(tasks){
-        case TASKS_C:
-          if(taskcount % 10 == 0 and C_csv[0].size() < taskcount/10){
-            for(int j=0;j<DOF;j++){
-              joint[j].qref = C_csv[j][taskcount/10%10];
-
-            }
+        case TASKS_L:
+          for(int j = 0; j < DOF ; j++){
+            joint[j].qref = -0.01;
           }
-          taskcount += 1;
         break;
 
         case TASKS_G:
-          if(taskcount % 10 == 0 and G_csv[0].size() < taskcount/10){
-            for(int j=0;j<DOF;j++){
-              joint[j].qref = G_csv[j][taskcount/10%10];
+          if(task_time < 10000){
+            joint[0].qref += 0.27/10000;
+            joint[1].qref += 0.24/10000;
+            joint[2].qref += -0.18/10000;
+            joint[3].qref += -0.22/10000;
+            joint[4].qref += -0.48/10000;
+            joint[5].qref += -0.81/10000;
+            joint[6].qref += -0.05/10000;
+            joint[7].qref += 0.24/10000;                        
+            joint[8].qref += 0.995/10000;
 
-            }
+            task_time += 1;
           }
-          taskcount += 1;        break;
-
-        case TASKS_L:
-          if(taskcount % 10 == 0 and L_csv[0].size() < taskcount/10){
-            for(int j=0;j<DOF;j++){
-              joint[j].qref = L_csv[j][taskcount/10%10];
-
-            }
-          }
-          taskcount += 1;
         break;
 
         case TASKS_I:
-          std::cout << "task I status----------" << std::endl;
-          std::cout << "Init flag[0]:" << Init_flag[0] <<std::endl;
-          std::cout << "magne[0]:" << magne[0] <<std::endl;
+            printf("%d : [0] %d [1] %d [2] %d  [3] %d [4] %d [5] %d [6] %d [7] %d [8] %d\n",count,
+                  Init_flag[0],Init_flag[1], Init_flag[2],
+                    Init_flag[3], Init_flag[4], Init_flag[5],
+                    Init_flag[6], Init_flag[7], Init_flag[8]);
 
           for(int j=0;j<DOF;j++){
-            if(torque[j] > 500 and Init_flag[j] == 0){
-              Init_flag[j] = 1;
-              qInit[j] = joint[j].q;
+            if(Init_flag[j] == 2){break;}
+            if(j == 0 or j == 1 or j == 8){
+              if(torque[j] < 1000 ){
+                joint[j].qref += 0.01 / 1000;
+                Init_flag[j] = 0;
+              }else if(torque[j] >= 1000 and torque[j] <= 1500 ){
+                joint[j].qref += 0;
+                Init_flag[j] = 1;
+              }else if(torque[j] > 1500 ){
+                joint[j].qref -= 0.01 / 1000;
+                Init_flag[j] = 0;
+              }
             }
-
-            if(Init_flag[j]==0){
-              joint[j].qref += 0.0001;
-              std::cout << "joint qref[0]:" << joint[0].qref <<std::endl;
+            else{
+              if(torque[j] < 500 ){
+                joint[j].qref += 0.01 / 1000;
+                Init_flag[j] = 0;
+              }else if(torque[j] >= 500 and torque[j] <= 1000 ){
+                joint[j].qref += 0;
+                Init_flag[j] = 1;
+              }else if(torque[j] > 1000 ){
+                joint[j].qref -= 0.01 / 1000;
+                Init_flag[j] = 0;
+              }
             }
-            else if(Init_flag[j] == 1 and magne[j] > 3){
-              joint[j].qref -= 0.0001;
-            }
-            else if(Init_flag[j] == 1 and magne[j] < 3){
-              Init_flag[j] = 2;
-              qInit[j] -= joint[j].q;
-            }
-            else if(Init_flag[j] = 2){
-              joint[j].q = 0;
-              joint[j].qref =0;
-            }
-
           }
-
           Init_flag_total = 0;
           for(int j= 0;j<DOF;j++){
             Init_flag_total += Init_flag[j];    
           }
-          if(Init_flag_total == 2*DOF){
+          if(Init_flag_total == DOF){
             ts01[0].set_count(0);
             ts01[1].set_count(0);
+            for(int j= 0;j<DOF;j++){
+              Init_flag[j] =2;    
+            }
+          }
+
+          for(int j=0;j<DOF;j++){
+            if(Init_flag[j] != 2){break;}
+            else{
+              joint[j].qref =0;
+            }
           }
 
         break;
@@ -493,13 +512,41 @@ for(int j=0;j<DOF;j++){
 
     break; //END of TEST_RUNNING
 
+    case STATE_INTERLOCK_RELEACE:
+      interlock_clear = 0;
+      for(int j=0;j<DOF;j++){
+        joint[j].qref = interlocked_q[j] -0.1;
+
+        if(torque[j] > 5000){
+          interlock_clear = 1;
+        }  
+      }
+      if(interlock_clear = 0){
+        interlock_flag = 0;
+      }
+
+      for(int j=0;j<DOF;j++){
+        joint[j].Qref.update();
+        joint[j].Qdref.update();
+        joint[j].feedback_control();
+        joint[j].tau_ref = joint[j].tau_fb;
+      }
+
+    
+    break;
+
   } //switch(state)
 
 
   // interlock----------------------------
 
   for(int j=0; j<DOF; j++){
-    if(torque[j] > 5000){
+    if(torque[j] > 7000 and interlock_flag == 0){
+      interlock_flag = 1;
+      for(int j=0;j<DOF;j++){
+        interlocked_q[j]  = joint[j].q;
+      }
+      std::cout << "interlocked" << std::endl;
       state = STATE_SERVO_OFF;
     }
     
@@ -603,15 +650,15 @@ int main(int ac,char* av[]){
       C_csv = CSVreader.read_out("./wire_ref/wire_C.csv");
       std::cout << "csv_readed" << std::endl;
       L_csv = CSVreader.read_out("./wire_ref/wire_L.csv");
-      std::cout << "csv_readed2:" << L_csv[0][0] <<std::endl;
+      std::cout << "csv_readed2:" <<std::endl;
       //G_csv = CSVreader.read_out("wire_G.csv");
       std::string errormessage ;
       errormessage = "cant";
       throw errormessage;
     }catch(std::string errormessage){
       std::cout << errormessage << std::endl;
-    }
-    */
+    }*/
+    
 
   std::string name = "sarm_module"+std::to_string(0);
   //Ktl::ManagedProcess mp(name);
