@@ -115,6 +115,7 @@ class Controller : public Ktl::Dynamics, public Ktl::RTShm{
   bool flag_emergency;
   int mode;
   int tasks;
+  double qref_tmp_ctrl[DOF];
   
   double t; // for only start_PTP
 

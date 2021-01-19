@@ -48,9 +48,13 @@ Q_OBJECT
   
   void getParam();
 
+  double qref_tmp[DOF];
+  std::string qref_string[DOF];
+
   //-- override from MainWindow ------------
   void loadFile(const QString &fileName);
   bool saveFile(const QString &fileName);
+
 
   private slots:
   bool start();
@@ -60,6 +64,7 @@ Q_OBJECT
   void execReferenceDialog();
   void applyReferences();
   void sendCommand(int id);
+  void send_ref(int cmd);
 
   //void operateJointMotion(int id,int trigger,int direction);
   void operateCartesianMotion(int id,int trigger,int direction);

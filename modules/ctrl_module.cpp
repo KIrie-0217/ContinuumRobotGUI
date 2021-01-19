@@ -68,12 +68,20 @@ double shift_range(double val){
 
 int Init_flag[DOF] =  {0,0,0,0,0,0,0,0,0};
 int Init_flag_total = 0;
+int Init_timer = 0;
 double qInit[DOF] = {0,0,0,0,0,0,0,0,0};
 int magneflag[DOF] = {1,1,1,1,1,1,1,1,1};
 int interlock_flag = 0;
 int interlock_clear =0;
 int interlocked_q[DOF] = {0,0,0,0,0,0,0,0,0};
 int task_time = 0;
+
+double qref_tmp[DOF] = {0,0,0,0,0,0,0,0,0};
+double qref_wire[DOF] = {0,0,0,0,0,0,0,0,0};
+double wire_length[DOF] ={650,770,890,650,770,890,650,770,890};
+double Tmax = 20;
+double Wiretension[DOF] = {0,0,0,0,0,0,0,0,0};
+double Wiretension_mean[DOF] = {0,0,0,0,0,0,0,0,0};
 
 static RTTask ctrl_task;
 
@@ -128,6 +136,7 @@ for(int j=0;j<DOF;j++){
   joint[j].setup();
   joint[j].init();
   joint[j].setup_parameters();
+  qref_tmp_ctrl[j]=0;
 }
 
 flag_emergency = false;
@@ -218,6 +227,10 @@ while(1) {
       case COMMAND_C:
         if( state != STATE_STANDBY ) break;
         tasks = TASKS_C;
+        task_time =0;
+        for(int j=0;j<DOF;j++){
+          qref_tmp[j] =0;
+        }
         state = STATE_STANDBY;
       break;
 
@@ -295,11 +308,17 @@ while(1) {
   /*
   printf("%d : %.3f %.3f %.3f  %.3f %.3f %.3f  %.3f %.3f %.3f\n",
   count,
-    torque[0], torque[1], torque[2],
-    torque[3], torque[4], torque[5],
-    torque[6], torque[7], torque[8]);
-  
-*/
+    joint[0].q, joint[1].q, joint[2].q,
+    joint[3].q,joint[4].q, joint[5].q,
+    joint[6].q, joint[7].q, joint[8].q);
+  */
+
+  printf("%d : %.3f %.3f %.3f  %.3f %.3f %.3f  %.3f %.3f %.3f\n",
+  count,
+    qref_tmp_ctrl[0],qref_tmp_ctrl[1],qref_tmp_ctrl[2],
+    qref_tmp_ctrl[3],qref_tmp_ctrl[4],qref_tmp_ctrl[5],
+    qref_tmp_ctrl[6],qref_tmp_ctrl[7],qref_tmp_ctrl[8]);
+
 for(int j=0;j<DOF;j++){
   if(j != DOF-1){
     joint[j].update( RPP[j]*input2[0].count[j] / Rt[j] + Q0[j] );
@@ -384,6 +403,55 @@ for(int j=0;j<DOF;j++){
           }
         break;
 
+        case TASKS_C:
+          if(task_time < 10000){
+            qref_tmp[0] += 0.27/10000;  //0.27  //0.302
+            qref_tmp[1] += 0.24/10000;  //0.24 //-0.096
+            qref_tmp[2] += -0.18/10000; //-0.18 //0
+            qref_tmp[3] += -0.22/10000; //-0.22  //-0.246
+            qref_tmp[4] += -0.48/10000; //-0.48 //0.1927
+            qref_tmp[5] += -0.81/10000; //-0.81 //0
+            qref_tmp[6] += -0.05/10000; //-0.05  //-0.056
+            qref_tmp[7] += 0.24/10000;     //0.24       //-0.096            
+            qref_tmp[8] += 0.995/10000; //0.995 //0
+
+            joint[0].qref = qref_tmp[0];
+            joint[1].qref = qref_tmp[1];
+            joint[2].qref = qref_tmp[2];
+            joint[3].qref = qref_tmp[3];
+            joint[4].qref = qref_tmp[4];
+            joint[5].qref = qref_tmp[5];
+            joint[6].qref = qref_tmp[6];
+            joint[7].qref = qref_tmp[7];
+            joint[8].qref = qref_tmp[8];
+
+
+            task_time += 1;
+          }
+          else{
+            if(task_time % 100 == 0){
+              for(int j =0;j<DOF;j++){
+                Wiretension[j] = torque[j] /sqrt(2) /1000 *9.8;
+                if(Wiretension_mean[j]==0){ Wiretension_mean[j] = torque[j]/sqrt(2) /1000 *9.8;}
+                Wiretension_mean[j] += Wiretension[j];
+                Wiretension_mean[j] = Wiretension_mean[j]/2;
+
+                if(joint[j].qref < 0){
+                  qref_wire[j] = 0;
+                }
+                else if(Wiretension_mean[j] > Tmax){
+                  qref_wire[j] = Tmax /220 /124 * wire_length[j] /12.5;
+                }else{
+                  qref_wire[j] = Wiretension_mean[j] /220 /124 * wire_length[j] /12.5;
+                }
+
+                joint[j].qref = qref_tmp[j] + qref_wire[j];
+              }
+            }
+            task_time += 1;
+          }
+        break;
+
         case TASKS_G:
           if(task_time < 10000){
             joint[0].qref += 0.27/10000;
@@ -421,13 +489,13 @@ for(int j=0;j<DOF;j++){
               }
             }
             else{
-              if(torque[j] < 500 ){
+              if(torque[j] < 300 ){
                 joint[j].qref += 0.01 / 1000;
                 Init_flag[j] = 0;
-              }else if(torque[j] >= 500 and torque[j] <= 1000 ){
+              }else if(torque[j] >= 300 and torque[j] <= 800 ){
                 joint[j].qref += 0;
                 Init_flag[j] = 1;
-              }else if(torque[j] > 1000 ){
+              }else if(torque[j] > 800 ){
                 joint[j].qref -= 0.01 / 1000;
                 Init_flag[j] = 0;
               }
@@ -438,6 +506,10 @@ for(int j=0;j<DOF;j++){
             Init_flag_total += Init_flag[j];    
           }
           if(Init_flag_total == DOF){
+            Init_timer += 1;
+          }else{Init_timer =0;}
+
+          if(Init_timer >3000){
             ts01[0].set_count(0);
             ts01[1].set_count(0);
             for(int j= 0;j<DOF;j++){
@@ -541,7 +613,7 @@ for(int j=0;j<DOF;j++){
   // interlock----------------------------
 
   for(int j=0; j<DOF; j++){
-    if(torque[j] > 7000 and interlock_flag == 0){
+    if(torque[j] > 10000 and interlock_flag == 0){
       interlock_flag = 1;
       for(int j=0;j<DOF;j++){
         interlocked_q[j]  = joint[j].q;

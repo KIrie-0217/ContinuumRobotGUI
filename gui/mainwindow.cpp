@@ -106,6 +106,8 @@ MainWindow::MainWindow(int id2){
   lower_hlayout->addWidget(tab);
 
 
+
+
   //---- Command Buttons ----------------------------------
   QGroupBox* commandBox = new QGroupBox("Command to Arm");
   QVBoxLayout* commandLayout = new QVBoxLayout;
@@ -143,18 +145,79 @@ MainWindow::MainWindow(int id2){
 
 
   QWidget* tab2 = new QWidget;
-  tab->addTab(tab2,"operation");
   QHBoxLayout* layout = new QHBoxLayout;
+  QGridLayout *gLayout = new QGridLayout();
+
+  tab->addTab(tab2,"operation");
+  tab2 -> setLayout(layout);
+  layout -> addLayout(gLayout);
+  layout -> addStretch();
 
 
-  
+  QButtonGroup* buttonGroup_sub = new QButtonGroup;
+  buttonGroup_sub->setExclusive(false);
+  /*
+  for(int i=0; i<1;i++){
+    std::string C;
+    std::string qref;
+    QLineEdit* text_box= new QLineEdit();
+
+
+    C = "motor_" + std::to_string(i+1) + ":";
+    qref = std::to_string(ctrl -> joint[i].q);
+
+    gLayout->addWidget(new QLabel(tr(C.c_str())), i, 0, Qt::AlignRight);      //  (0, 0) 位置
+
+    gLayout->addWidget(text_box, i, 1);
+      qref_tmp[i] = (text_box -> text()).toDouble();
+      qref_string[i] = (text_box -> text()).toStdString();
+      std::cout << (text_box -> text()).toStdString()<< std::endl;
+      
+
+    gLayout->addWidget(new QLabel(tr(qref.c_str())), i, 2, Qt::AlignRight);  
+
+    QPushButton* button = new QPushButton(C.c_str());
+    button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    buttonGroup_sub ->addButton(button,i);
+    gLayout->addWidget(button,i,3);
+
+  }*/
+
+    QLineEdit* text_box= new QLineEdit();
+
+
+    gLayout->addWidget(new QLabel(tr("motor")), 0, 0, Qt::AlignRight);      //  (0, 0) 位置
+
+    gLayout->addWidget(text_box, 0, 1);
+    text_box -> setText("aa");
+      qref_tmp[0] = (text_box -> text()).toDouble();
+      qref_string[0] = (text_box -> text()).toStdString();
+      std::cout << (text_box -> text()).toStdString()<< std::endl;
+      
+
+    gLayout->addWidget(new QLabel(tr("motor")), 0, 2, Qt::AlignRight);  
+
+    QPushButton* button = new QPushButton("motor");
+    button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    buttonGroup_sub ->addButton(button,0);
+    gLayout->addWidget(button,0,3);
+
+    std::cout << (text_box -> text()).toStdString()<< std::endl;
+
+
+    connect(buttonGroup_sub, SIGNAL(buttonClicked(int)),
+	  this, SLOT(send_ref(int)) );
+
+
+
 
   //layout->addWidget(cartesianOperation);
   //layout->addWidget(jointOperation);
 
   //--------- Setting Monitor --------------------------------------
+  #define DATA(name) (&ctrl->name)
   monitor->setAxes("1-1","1-2","1-3","2-1","2-2","2-3","3-1","3-2","3-3",NULL);
-#define DATA(name) (&ctrl->name)
+
 
   monitor->addType( "q");
 
@@ -356,6 +419,17 @@ void MainWindow::sendCommand(int cmd){
   }
   statusBar()->showMessage(tr(command_text(cmd)), 2000);
   ctrl_module.send_command(cmd);
+}
+
+void MainWindow::send_ref(int cmd){
+  if( !ctrl_module.exists() ){
+    printf("CtrlKit:: control module is not loaded\n ");
+    std::cout << qref_string[cmd] <<"and" <<cmd << std::endl;
+    
+    return;
+  }
+  ctrl -> qref_tmp_ctrl[cmd] = qref_tmp[cmd];
+
 }
 
 
