@@ -257,6 +257,18 @@ while(1) {
 
       break;
 
+      case COMMAND_CONTROL:
+        if( state != STATE_STANDBY  ) break;
+        for(int j=0;j<DOF;j++){
+          qref_[j] = joint[j].qref;
+          qref_tmp_ctrl[j] = 0;
+          qref_tmp_ctrl_[j] = 0;
+        }
+        tasks = TASKS_CONTROL;
+        state = STATE_STANDBY;
+
+      break;
+
       case COMMAND_RESET_ORIGIN:
         if( state < STATE_READY ){
           for(int i=0;i<2;i++)
@@ -525,7 +537,19 @@ for(int j=0;j<DOF;j++){
           }
 
         break;
+
+        case TASKS_CONTROL:
+          for(int j=0;j<DOF;j++){
+            if(qref_tmp_ctrl_[j] != qref_tmp_ctrl[j]){
+              joint[j].qref = qref_[j] + qref_tmp_ctrl[j]/12.5;
+              qref_[j] = joint[j].qref;
+            }
+          }
+        break;
       }
+
+
+
       
       for(int j=0;j<DOF;j++){
         joint[j].Qref.update();

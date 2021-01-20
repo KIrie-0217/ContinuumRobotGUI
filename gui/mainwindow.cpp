@@ -166,7 +166,7 @@ MainWindow::MainWindow(int id2){
 
     for(int i=0;i<DOF;i++){
       char str[100];
-      sprintf(str, "motor %d :",i+1);
+      sprintf(str, "motor %d : +=",i+1);
       gLayout->addWidget(new QLabel(tr(str)), i, 0, Qt::AlignRight);  
   
       text_box[i] = new QLineEdit();
@@ -429,7 +429,7 @@ void MainWindow::reload_q(int cmd){
     
     return;
   }
-  QString str = QString::number(ctrl -> joint[cmd].q);
+  QString str = QString::number((ctrl -> joint[cmd].q)*12.5) + "mm";
   current_q[cmd] -> setText(str); 
 }
 

@@ -25,6 +25,7 @@ enum Command{
   COMMAND_C,
   COMMAND_L,
   COMMAND_G,
+  COMMAND_CONTROL,
   COMMAND_RESET_ORIGIN,
   COMMAND_INTERLOCK_RELEACE,
   COMMAND_ABORT,//SERVO_OFFと同じ.
@@ -44,6 +45,7 @@ static const char* command_text(int com){
   "C",
   "L",
   "G",
+  "Control_mode",
   "RESET_ORIGIN",
   "interlock_releace",
   "ABORT",
@@ -104,6 +106,7 @@ enum tasks_mode{
   TASKS_L,
   TASKS_G,
   TASKS_I,
+  TASKS_CONTROL,
 };
 
 
@@ -116,6 +119,8 @@ class Controller : public Ktl::Dynamics, public Ktl::RTShm{
   int mode;
   int tasks;
   double qref_tmp_ctrl[DOF];
+  double qref_tmp_ctrl_[DOF];
+  double qref_[DOF];
   
   double t; // for only start_PTP
 
