@@ -25,6 +25,9 @@ Q_OBJECT
   
   QDialog* parameterDialog;
 
+  QLineEdit* text_box[9];
+  QLabel* current_q[9];
+
   KQt::ParameterManager pm;
   KQt::StartStopManager* startstop;  
   KQt::ModeSelector* modeSelector;
@@ -65,6 +68,7 @@ Q_OBJECT
   void applyReferences();
   void sendCommand(int id);
   void send_ref(int cmd);
+  void reload_q(int cmd);
 
   //void operateJointMotion(int id,int trigger,int direction);
   void operateCartesianMotion(int id,int trigger,int direction);

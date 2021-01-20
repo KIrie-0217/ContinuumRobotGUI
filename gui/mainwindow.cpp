@@ -154,60 +154,47 @@ MainWindow::MainWindow(int id2){
   layout -> addStretch();
 
 
-  QButtonGroup* buttonGroup_sub = new QButtonGroup;
-  buttonGroup_sub->setExclusive(false);
-  /*
-  for(int i=0; i<1;i++){
-    std::string C;
-    std::string qref;
-    QLineEdit* text_box= new QLineEdit();
+  QButtonGroup* buttonGroup_push = new QButtonGroup;
+  QButtonGroup* buttonGroup_reload = new QButtonGroup;
+  buttonGroup_push->setExclusive(false);
+  buttonGroup_reload->setExclusive(false);
+
+    
+
+    //  (0, 0) 位置
 
 
-    C = "motor_" + std::to_string(i+1) + ":";
-    qref = std::to_string(ctrl -> joint[i].q);
+    for(int i=0;i<DOF;i++){
+      char str[100];
+      sprintf(str, "motor %d :",i+1);
+      gLayout->addWidget(new QLabel(tr(str)), i, 0, Qt::AlignRight);  
+  
+      text_box[i] = new QLineEdit();
+      gLayout->addWidget(text_box[i], i, 1);
+      text_box[i] -> setText("0.0");
 
-    gLayout->addWidget(new QLabel(tr(C.c_str())), i, 0, Qt::AlignRight);      //  (0, 0) 位置
-
-    gLayout->addWidget(text_box, i, 1);
-      qref_tmp[i] = (text_box -> text()).toDouble();
-      qref_string[i] = (text_box -> text()).toStdString();
-      std::cout << (text_box -> text()).toStdString()<< std::endl;
-      
-
-    gLayout->addWidget(new QLabel(tr(qref.c_str())), i, 2, Qt::AlignRight);  
-
-    QPushButton* button = new QPushButton(C.c_str());
-    button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    buttonGroup_sub ->addButton(button,i);
-    gLayout->addWidget(button,i,3);
-
-  }*/
-
-    QLineEdit* text_box= new QLineEdit();
+      QPushButton* button = new QPushButton("Push");
+      button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+      buttonGroup_push ->addButton(button,i);
+      gLayout->addWidget(button,i,2);
 
 
-    gLayout->addWidget(new QLabel(tr("motor")), 0, 0, Qt::AlignRight);      //  (0, 0) 位置
+      gLayout->addWidget(new QLabel(tr("Current q :")), i, 3, Qt::AlignRight);  
 
-    gLayout->addWidget(text_box, 0, 1);
-    text_box -> setText("aa");
-      qref_tmp[0] = (text_box -> text()).toDouble();
-      qref_string[0] = (text_box -> text()).toStdString();
-      std::cout << (text_box -> text()).toStdString()<< std::endl;
-      
+      current_q[i] = new QLabel(tr(""));
+      gLayout->addWidget(current_q[i],i,4,Qt::AlignRight);
 
-    gLayout->addWidget(new QLabel(tr("motor")), 0, 2, Qt::AlignRight);  
+      QPushButton* button_reload = new QPushButton("Reload");
+      button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+      buttonGroup_reload ->addButton(button_reload,i);
+      gLayout->addWidget(button_reload,i,5);
 
-    QPushButton* button = new QPushButton("motor");
-    button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    buttonGroup_sub ->addButton(button,0);
-    gLayout->addWidget(button,0,3);
+    }
 
-    std::cout << (text_box -> text()).toStdString()<< std::endl;
-
-
-    connect(buttonGroup_sub, SIGNAL(buttonClicked(int)),
+    connect(buttonGroup_push, SIGNAL(buttonClicked(int)),
 	  this, SLOT(send_ref(int)) );
-
+    connect(buttonGroup_reload, SIGNAL(buttonClicked(int)),
+	  this, SLOT(reload_q(int)) );
 
 
 
@@ -424,12 +411,26 @@ void MainWindow::sendCommand(int cmd){
 void MainWindow::send_ref(int cmd){
   if( !ctrl_module.exists() ){
     printf("CtrlKit:: control module is not loaded\n ");
-    std::cout << qref_string[cmd] <<"and" <<cmd << std::endl;
+    std::cout << "(simulation)motor"  << cmd << "qref upload:" <<(text_box[cmd] -> text()).toDouble()  <<std::endl;
     
     return;
   }
-  ctrl -> qref_tmp_ctrl[cmd] = qref_tmp[cmd];
+  ctrl -> qref_tmp_ctrl[cmd] = (text_box[cmd] -> text()).toDouble();
+  std::cout << "motor"  << cmd << "qref upload:" <<(text_box[cmd] -> text()).toDouble()  << std::endl;
+    
 
+}
+
+
+void MainWindow::reload_q(int cmd){
+  if( !ctrl_module.exists() ){
+    printf("CtrlKit:: control module is not loaded\n ");
+
+    
+    return;
+  }
+  QString str = QString::number(ctrl -> joint[cmd].q);
+  current_q[cmd] -> setText(str); 
 }
 
 
