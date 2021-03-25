@@ -22,9 +22,8 @@ enum Command{
   COMMAND_LOCK, //lock when mode is task 
   COMMAND_UNLOCK, //unlock when mode is task
   COMMAND_INIT, //Init
-  COMMAND_C,
-  COMMAND_L,
-  COMMAND_G,
+  COMMAND_DATA,
+  COMMAND_DEMO,
   COMMAND_CONTROL,
   COMMAND_RESET_ORIGIN,
   COMMAND_INTERLOCK_RELEACE,
@@ -41,11 +40,10 @@ static const char* command_text(int com){
   "STOP",
   "LOCK",
   "UNLOCK",
-  "INIT",
-  "C",
-  "L",
-  "G",
-  "Control_mode",
+  "1:INIT",
+  "2:DATA",
+  "3:DEMO",
+  "4:Control_mode",
   "RESET_ORIGIN",
   "interlock_releace",
   "ABORT",
@@ -102,9 +100,8 @@ static const char* state_text(int state){
 
 enum tasks_mode{
   TASKS_FIRST,
-  TASKS_C,
-  TASKS_L,
-  TASKS_G,
+  TASKS_DATA,
+  TASKS_DEMO,
   TASKS_I,
   TASKS_CONTROL,
 };
@@ -121,7 +118,10 @@ class Controller : public Ktl::Dynamics, public Ktl::RTShm{
   double qref_tmp_ctrl[DOF];
   double qref_tmp_ctrl_[DOF];
   double qref_[DOF];
-  
+  int click_signal[DOF];
+  std::vector<std::vector<double>> radians;
+  int radians_selector;
+
   double t; // for only start_PTP
 
   bool flag_feedforward;

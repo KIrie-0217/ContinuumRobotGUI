@@ -9,6 +9,7 @@
 #include "controller.h"
 
 #include "./wire_ref/readCSV.h"
+#include <unistd.h>
 
 #define DEBUG
 #ifdef DEBUG
@@ -83,6 +84,10 @@ double Tmax = 20;
 double Wiretension[DOF] = {0,0,0,0,0,0,0,0,0};
 double Wiretension_mean[DOF] = {0,0,0,0,0,0,0,0,0};
 
+double qref_testrun1[DOF] = {0.35634534,0.24313856,-0.13216739,-0.28775869,-0.47768922,-0.58844919,-0.0632473,0.25142291,0.74329144};
+double qref_testrun2[DOF] = {0.52001276,-0.1049952,-0.15513929,-0.1150935,0.0014325,-0.34859202,-0.03706264,-0.01921527,0.5406009};
+double qref_testrun3[DOF] = {0.55001276,-0.1049952,-0.15513929,-0.1150935,0.3614325,-0.34859202,-0.03706264,-0.01921527,0.5606009};
+double qref_testrun4[DOF] = {0.19150216,0.05161616,-0.02303718,-0.15888016,-0.09013535,-0.1178806,-0.03426495,0.05768769,0.16217832};
 static RTTask ctrl_task;
 
 Controller* mctrl;
@@ -141,7 +146,34 @@ for(int j=0;j<DOF;j++){
 
 flag_emergency = false;
 
+radians.resize(200);
+for(int i =0;i<200;i++){
+  radians[i].resize(DOF);
+}
+std::ifstream ifs;
+ifs.open("./radians11.dat");
+if(!ifs.is_open()){
+  std::cout << "cant open dat file" << std::endl;
+}
 
+std::string str;
+int I = 0;
+int J = 0;
+
+while(getline(ifs,str)){
+    std::string tmp;
+    double tmp_;
+    std::istringstream stream(str);
+    J=0;
+    while(getline(stream,tmp,',')){
+
+        tmp_ = stod(tmp);
+        radians.at(I).at(J) = tmp_;
+        J+=1;
+    }
+    I += 1;
+}
+radians_selector = 0;
 
 //----------------------------------------
 
@@ -224,9 +256,9 @@ while(1) {
 
       break;
     
-      case COMMAND_C:
+      case COMMAND_DATA:
         if( state != STATE_STANDBY ) break;
-        tasks = TASKS_C;
+        tasks = TASKS_DATA;
         task_time =0;
         for(int j=0;j<DOF;j++){
           qref_tmp[j] =0;
@@ -235,19 +267,17 @@ while(1) {
       break;
 
 
-      case COMMAND_L:
+      case COMMAND_DEMO:
         if(state != STATE_STANDBY  ) break;
-        tasks = TASKS_L;
+        tasks = TASKS_DEMO;
         state = STATE_STANDBY;
+
+        task_time =0;
+        for(int j=0;j<DOF;j++){
+          qref_tmp[j] =0;
+        }
       break;
 
-
-      case COMMAND_G:
-        if(state != STATE_STANDBY ) break;
-        tasks = TASKS_G;
-        task_time = 0;
-        state = STATE_STANDBY;
-      break;
 
 
       case COMMAND_INIT:
@@ -260,6 +290,7 @@ while(1) {
       case COMMAND_CONTROL:
         if( state != STATE_STANDBY  ) break;
         for(int j=0;j<DOF;j++){
+          joint[j].qref = joint[j].q;
           qref_[j] = joint[j].qref;
           qref_tmp_ctrl[j] = 0;
           qref_tmp_ctrl_[j] = 0;
@@ -324,18 +355,24 @@ while(1) {
     joint[3].q,joint[4].q, joint[5].q,
     joint[6].q, joint[7].q, joint[8].q);
   */
-
+  /*
   printf("%d : %.3f %.3f %.3f  %.3f %.3f %.3f  %.3f %.3f %.3f\n",
   count,
     qref_tmp_ctrl[0],qref_tmp_ctrl[1],qref_tmp_ctrl[2],
     qref_tmp_ctrl[3],qref_tmp_ctrl[4],qref_tmp_ctrl[5],
     qref_tmp_ctrl[6],qref_tmp_ctrl[7],qref_tmp_ctrl[8]);
+    */
+   
+   std::cout << radians_selector << std::endl;
 
+   std::cout << radians[radians_selector][0] << ":::"<<radians[radians_selector][1]<<":::"<<radians[radians_selector][2]<<":::"<<radians[radians_selector][3]<<
+   ":::"<<radians[radians_selector][4]<<":::"<<radians[radians_selector][5]<<":::"<<radians[radians_selector][6]<<":::"<<radians[radians_selector][7]<<":::"<<radians[radians_selector][8]<<std::endl;
+  
 for(int j=0;j<DOF;j++){
   if(j != DOF-1){
     joint[j].update( RPP[j]*input2[0].count[j] / Rt[j] + Q0[j] );
   }
-  else{
+  else if(j == 8){
     joint[j].update( RPP[j]*input2[1].count[0] / Rt[j] + Q0[j] );
   } 
 }
@@ -409,75 +446,44 @@ for(int j=0;j<DOF;j++){
 
     case STATE_TASK_RUNNING:
       switch(tasks){
-        case TASKS_L:
-          for(int j = 0; j < DOF ; j++){
-            joint[j].qref = -0.01;
+        case TASKS_DEMO:
+        if(task_time < 3000){
+          for(int j= 0; j<DOF ; j++){
+            qref_tmp[j] += qref_testrun1[j]/3000;
           }
+        }
+        else if(task_time > 7000 and task_time < 11000){
+          for(int j= 0; j<DOF ; j++){
+            qref_tmp[j] += (qref_testrun2[j]-qref_testrun1[j])/4000;
+          }
+        }
+        else if(task_time > 11000 and task_time < 14000){
+          for(int j= 0; j<DOF ; j++){
+            qref_tmp[j] += (qref_testrun3[j]-qref_testrun2[j])/3000;
+          }
+        }
+        else if(task_time > 17000 and task_time < 20000){
+          for(int j= 0; j<DOF ; j++){
+            qref_tmp[j] += (qref_testrun4[j]-qref_testrun3[j])/3000;
+          }
+        } 
+
+        for(int j= 0; j<DOF ; j++){
+          joint[j].qref = qref_tmp[j];
+        }
+        task_time += 1;
         break;
 
-        case TASKS_C:
-          if(task_time < 10000){
-            qref_tmp[0] += 0.27/10000;  //0.27  //0.302
-            qref_tmp[1] += 0.24/10000;  //0.24 //-0.096
-            qref_tmp[2] += -0.18/10000; //-0.18 //0
-            qref_tmp[3] += -0.22/10000; //-0.22  //-0.246
-            qref_tmp[4] += -0.48/10000; //-0.48 //0.1927
-            qref_tmp[5] += -0.81/10000; //-0.81 //0
-            qref_tmp[6] += -0.05/10000; //-0.05  //-0.056
-            qref_tmp[7] += 0.24/10000;     //0.24       //-0.096            
-            qref_tmp[8] += 0.995/10000; //0.995 //0
-
-            joint[0].qref = qref_tmp[0];
-            joint[1].qref = qref_tmp[1];
-            joint[2].qref = qref_tmp[2];
-            joint[3].qref = qref_tmp[3];
-            joint[4].qref = qref_tmp[4];
-            joint[5].qref = qref_tmp[5];
-            joint[6].qref = qref_tmp[6];
-            joint[7].qref = qref_tmp[7];
-            joint[8].qref = qref_tmp[8];
-
-
-            task_time += 1;
-          }
-          else{
-            if(task_time % 100 == 0){
-              for(int j =0;j<DOF;j++){
-                Wiretension[j] = torque[j] /sqrt(2) /1000 *9.8;
-                if(Wiretension_mean[j]==0){ Wiretension_mean[j] = torque[j]/sqrt(2) /1000 *9.8;}
-                Wiretension_mean[j] += Wiretension[j];
-                Wiretension_mean[j] = Wiretension_mean[j]/2;
-
-                if(joint[j].qref < 0){
-                  qref_wire[j] = 0;
-                }
-                else if(Wiretension_mean[j] > Tmax){
-                  qref_wire[j] = Tmax /220 /124 * wire_length[j] /12.5;
-                }else{
-                  qref_wire[j] = Wiretension_mean[j] /220 /124 * wire_length[j] /12.5;
-                }
-
-                joint[j].qref = qref_tmp[j] + qref_wire[j];
-              }
+        case TASKS_DATA:
+          if(task_time < 3000){
+            for(int j=0 ;j<DOF;j++ ){
+              qref_tmp[j] += radians[radians_selector][j]/3000;
+              joint[j].qref = qref_tmp[j];
             }
-            task_time += 1;
-          }
-        break;
-
-        case TASKS_G:
-          if(task_time < 10000){
-            joint[0].qref += 0.27/10000;
-            joint[1].qref += 0.24/10000;
-            joint[2].qref += -0.18/10000;
-            joint[3].qref += -0.22/10000;
-            joint[4].qref += -0.48/10000;
-            joint[5].qref += -0.81/10000;
-            joint[6].qref += -0.05/10000;
-            joint[7].qref += 0.24/10000;                        
-            joint[8].qref += 0.995/10000;
 
             task_time += 1;
           }
+
         break;
 
         case TASKS_I:
@@ -489,25 +495,25 @@ for(int j=0;j<DOF;j++){
           for(int j=0;j<DOF;j++){
             if(Init_flag[j] == 2){break;}
             if(j == 0 or j == 1 or j == 8){
-              if(torque[j] < 1000 ){
+              if(torque[j] < 500 *sqrt(2)){
                 joint[j].qref += 0.01 / 1000;
                 Init_flag[j] = 0;
-              }else if(torque[j] >= 1000 and torque[j] <= 1500 ){
+              }else if(torque[j] >= 500 *sqrt(2) and torque[j] <= 700 *sqrt(2) ){
                 joint[j].qref += 0;
                 Init_flag[j] = 1;
-              }else if(torque[j] > 1500 ){
+              }else if(torque[j] > 700 *sqrt(2) ){
                 joint[j].qref -= 0.01 / 1000;
                 Init_flag[j] = 0;
               }
             }
             else{
-              if(torque[j] < 300 ){
+              if(torque[j] < 500*sqrt(2) ){
                 joint[j].qref += 0.01 / 1000;
                 Init_flag[j] = 0;
-              }else if(torque[j] >= 300 and torque[j] <= 800 ){
+              }else if(torque[j] >= 500 *sqrt(2) and torque[j] <= 700 *sqrt(2)){
                 joint[j].qref += 0;
                 Init_flag[j] = 1;
-              }else if(torque[j] > 800 ){
+              }else if(torque[j] > 700 *sqrt(2)){
                 joint[j].qref -= 0.01 / 1000;
                 Init_flag[j] = 0;
               }
@@ -521,27 +527,24 @@ for(int j=0;j<DOF;j++){
             Init_timer += 1;
           }else{Init_timer =0;}
 
-          if(Init_timer >3000){
+          if(Init_timer >2000){
             ts01[0].set_count(0);
             ts01[1].set_count(0);
+            
             for(int j= 0;j<DOF;j++){
               Init_flag[j] =2;    
+              joint[j].qref = 0;
             }
           }
-
-          for(int j=0;j<DOF;j++){
-            if(Init_flag[j] != 2){break;}
-            else{
-              joint[j].qref =0;
-            }
-          }
+      
 
         break;
 
         case TASKS_CONTROL:
           for(int j=0;j<DOF;j++){
-            if(qref_tmp_ctrl_[j] != qref_tmp_ctrl[j]){
+            if(click_signal[j] != 0){
               joint[j].qref = qref_[j] + qref_tmp_ctrl[j]/12.5;
+              click_signal[j] = 0;
               qref_[j] = joint[j].qref;
             }
           }
@@ -552,35 +555,13 @@ for(int j=0;j<DOF;j++){
 
       
       for(int j=0;j<DOF;j++){
+
         joint[j].Qref.update();
         joint[j].Qdref.update();
         joint[j].feedback_control();
         joint[j].tau_ref = joint[j].tau_fb;
       }
 
-      
-
-      /*
-      mref.zero();
-      
-      if( flag_pose_lock ){ //
-        //wref.zero();
-        for(int j=3;j<DOF;j++){ //
-          joint[j].qdref = 0.2 *( 0.0- joint[j].qd );
-        }
-      }
-
-      for(int j=0;j<DOF;j++){
-        joint[j].qref = joint[j].q;
-        joint[j].tau_ref = 0.0;
-      }
-
-        
-      for(int j=0;j<DOF;j++){
-        joint[j].feedforward_control(0,1,1);
-      }
-
-      */
       
     break;
 
@@ -637,7 +618,7 @@ for(int j=0;j<DOF;j++){
   // interlock----------------------------
 
   for(int j=0; j<DOF; j++){
-    if(torque[j] > 10000 and interlock_flag == 0){
+    if(torque[j] > 25000 and interlock_flag == 0){
       interlock_flag = 1;
       for(int j=0;j<DOF;j++){
         interlocked_q[j]  = joint[j].q;
@@ -688,7 +669,7 @@ buf.axis_data[j][LOG_Q_REF    ] = joint[j].qref;
 buf.axis_data[j][LOG_Q_REF_D  ] = joint[j].qdref;
 buf.axis_data[j][LOG_Q        ] = joint[j].q;
 buf.axis_data[j][LOG_Q_D      ] = joint[j].qd;
-buf.axis_data[j][LOG_TAU      ] = joint[j].tau_ref;
+buf.axis_data[j][LOG_TAU      ] = torque[j] /sqrt(2);
 buf.axis_data[j][LOG_ZFF      ] = joint[j].tau_ff;
 buf.axis_data[j][LOG_VOLTAGE  ] = u[j];
     }

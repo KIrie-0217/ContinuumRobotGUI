@@ -155,13 +155,8 @@ MainWindow::MainWindow(int id2){
 
 
   QButtonGroup* buttonGroup_push = new QButtonGroup;
-  QButtonGroup* buttonGroup_reload = new QButtonGroup;
+
   buttonGroup_push->setExclusive(false);
-  buttonGroup_reload->setExclusive(false);
-
-    
-
-    //  (0, 0) 位置
 
 
     for(int i=0;i<DOF;i++){
@@ -184,17 +179,27 @@ MainWindow::MainWindow(int id2){
       current_q[i] = new QLabel(tr(""));
       gLayout->addWidget(current_q[i],i,4,Qt::AlignRight);
 
-      QPushButton* button_reload = new QPushButton("Reload");
-      button->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-      buttonGroup_reload ->addButton(button_reload,i);
-      gLayout->addWidget(button_reload,i,5);
-
     }
+      QPushButton* button_reload = new QPushButton("Reload");
+      button_reload->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+      gLayout->addWidget(button_reload,0,5);
+
+      radians_label= new QLabel(tr(""));
+      gLayout->addWidget(radians_label,0,6,Qt::AlignRight);
+      radians_box = new QLineEdit();
+      gLayout->addWidget(radians_box, 1, 6);
+      radians_box -> setText("0");
+      QPushButton* button_modeG = new QPushButton("Reload (mode:DATA)");
+      button_modeG->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+      gLayout->addWidget(button_modeG,2,6);
 
     connect(buttonGroup_push, SIGNAL(buttonClicked(int)),
 	  this, SLOT(send_ref(int)) );
-    connect(buttonGroup_reload, SIGNAL(buttonClicked(int)),
-	  this, SLOT(reload_q(int)) );
+    connect(button_reload, SIGNAL(clicked()),
+	  this, SLOT(reload_q()) );
+    connect(button_modeG, SIGNAL(clicked()),
+	  this, SLOT(reload_radians()) );
+
 
 
 
@@ -224,10 +229,15 @@ MainWindow::MainWindow(int id2){
     monitor->registerData(-1000.0,1000.0, 0, DEG, DATA(joint[j].qddref),
 			  DATA(joint[j].qdd) );
 
-
+  monitor->addType( "torque");
+  for(int j =0; j<DOF;j++)
+    monitor->registerData( -1000.0, 1000.0, 0, 1.0, 
+      DATA(torque[j]));
+/*
   monitor->addType( "magne");
   for(int j=0;j<DOF;j++)
     monitor->registerData(0,10.0, 0, 1, DATA(magne[j]) );
+*/
 
     
  
@@ -261,7 +271,7 @@ MainWindow::MainWindow(int id2){
   monitor->registerData( -100.0, 100.0, 0, 1.0, DATA(w[0]),DATA(w[1]),DATA(w[2]) );
   */
 
-
+ /*
   monitor->addType( "torque 1-3");
   for(int j =0; j<DOF;j++)
     monitor->registerData( -1000.0, 1000.0, 0, 1.0, 
@@ -282,6 +292,7 @@ MainWindow::MainWindow(int id2){
       DATA(torque[6]), 
       DATA(torque[7]),
       DATA(torque[8]));
+  */
 
   //---------------------------------------------------------------
   //monitor->addType( "gr");
@@ -416,21 +427,41 @@ void MainWindow::send_ref(int cmd){
     return;
   }
   ctrl -> qref_tmp_ctrl[cmd] = (text_box[cmd] -> text()).toDouble();
+
+  ctrl -> click_signal[cmd] = 1;
   std::cout << "motor"  << cmd << "qref upload:" <<(text_box[cmd] -> text()).toDouble()  << std::endl;
-    
+
+
 
 }
 
 
-void MainWindow::reload_q(int cmd){
+void MainWindow::reload_q(){
   if( !ctrl_module.exists() ){
     printf("CtrlKit:: control module is not loaded\n ");
 
     
     return;
   }
-  QString str = QString::number((ctrl -> joint[cmd].q)*12.5) + "mm";
-  current_q[cmd] -> setText(str); 
+  for(int i=0;i<DOF;i++){
+  QString str = QString::number((ctrl -> joint[i].q)*12.5) + "mm";
+  current_q[i] -> setText(str); 
+  }
+}
+
+
+void MainWindow::reload_radians(){
+  if( !ctrl_module.exists() ){
+    printf("CtrlKit:: control module is not loaded\n ");
+
+    
+    return;
+  }
+  ctrl -> radians_selector = (radians_box -> text()).toDouble();
+  radians_label -> setText(radians_box -> text());
+
+
+  
 }
 
 
